@@ -20,6 +20,35 @@ ThinshellAddressLayout class >> gdb: aGDB [
 		initialize
 ]
 
+{ #category : #'register conventions' }
+ThinshellAddressLayout class >> registerAssignments [
+	"This is TAM-specific and probably should not be here."
+	^
+	(#R  -> 1),
+	(#A  -> 2),
+	(#A  -> 3),
+	(#FP -> 4),
+
+	(#Scratch1  -> 5),
+	(#Scratch2  -> 6),
+	(#Scratch3  -> 7),
+	(#Scratch4  -> 8),
+	(#Scratch5  -> 9),
+	(#Scratch6  -> 10),
+	(#Scratch7  -> 11),
+	(#Scratch8  -> 12),
+	(#Scratch9  -> 13),
+	(#Scratch10 -> 14),
+	
+	(#NZone -> 16),
+	(#HEAP  -> 2),
+	(#SP    -> 18),
+	(#VPC   -> 19),
+	
+	(#NativePC -> 'pc')
+	
+]
+
 { #category : #initialization }
 ThinshellAddressLayout >> executeStartChain [
 	| regs |
@@ -29,8 +58,7 @@ ThinshellAddressLayout >> executeStartChain [
 		s; s;
 		s; s; "2 nops"
 		getRegisters.
-		
-	TAJWriter initializeRegisterMap.
+
 	nZone := regs at: (self regNameFor: #NZone).
 	heap := regs at: (self regNameFor: #HEAP).
 	stack := regs at: (self regNameFor: #SP).
@@ -74,7 +102,7 @@ ThinshellAddressLayout >> nZone: anObject [
 
 { #category : #'cooperation with gdb' }
 ThinshellAddressLayout >> regNameFor: vRegName [
-	^'r', (TAJWriter vRegister: vRegName) printString
+	^'r', (ThinshellAddressLayout registerAssignments at: vRegName) printString
 ]
 
 { #category : #accessing }
