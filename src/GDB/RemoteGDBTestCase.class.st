@@ -47,7 +47,7 @@ RemoteGDBTestCase >> testManualSyscallInNZone [
 	| memLayout writeInstructions exitInstructions |
 	self halt.
 	self connectGDB.
-	memLayout := TrivialMemoryLayout gdb: gdb.
+	memLayout := ThinshellAddressLayout gdb: gdb.
 	memLayout executeStartChain.
 	writeInstructions := self writeSyscall: self messageBytes.
 	exitInstructions := self exitSyscall: 1.
