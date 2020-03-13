@@ -1,5 +1,5 @@
 Class {
-	#name : #RemoteGDBTransfer,
+	#name : #RemoteGDBTransport,
 	#superclass : #Object,
 	#instVars : [
 		'socket'
@@ -8,12 +8,12 @@ Class {
 }
 
 { #category : #'as yet unclassified' }
-RemoteGDBTransfer class >> host: h [
+RemoteGDBTransport class >> host: h [
 	^self host: h port: self wellKnownPort 
 ]
 
 { #category : #'as yet unclassified' }
-RemoteGDBTransfer class >> host: h port: p [
+RemoteGDBTransport class >> host: h port: p [
 	| socket |
 	socket := Socket newTCP 
 		setOption: 'TCP_NODELAY' value: 1;
@@ -22,17 +22,17 @@ RemoteGDBTransfer class >> host: h port: p [
 ]
 
 { #category : #'as yet unclassified' }
-RemoteGDBTransfer class >> onSocket: aSocket [
+RemoteGDBTransport class >> onSocket: aSocket [
 	^self new socket: aSocket 
 ]
 
 { #category : #'as yet unclassified' }
-RemoteGDBTransfer class >> wellKnownPort [
+RemoteGDBTransport class >> wellKnownPort [
 	^2159
 ]
 
 { #category : #private }
-RemoteGDBTransfer >> assemblePacket: packetDataString [
+RemoteGDBTransport >> assemblePacket: packetDataString [
 	| s cksum |
 	s := '$', (self escape: packetDataString), '#'.
 	cksum := packetDataString  inject: 0 into: [ :soFar :c | soFar + c asciiValue \\ 256 ].
@@ -41,13 +41,13 @@ RemoteGDBTransfer >> assemblePacket: packetDataString [
 ]
 
 { #category : #private }
-RemoteGDBTransfer >> escape: aString [
+RemoteGDBTransport >> escape: aString [
 	^aString inject: '' into: [ :soFar :c | soFar, (self escapeChar: c) ].
 	
 ]
 
 { #category : #private }
-RemoteGDBTransfer >> escapeChar: c [
+RemoteGDBTransport >> escapeChar: c [
 	"Where the characters '#' or '$' appear in the packet data,
 	they must be escaped.
 	The escape character is ASCII 0x7d ('}'),
@@ -60,7 +60,7 @@ RemoteGDBTransfer >> escapeChar: c [
 ]
 
 { #category : #private }
-RemoteGDBTransfer >> readAndVerifyCksum: anInteger [
+RemoteGDBTransport >> readAndVerifyCksum: anInteger [
 	"Read next two characters from the TCP stream and verify that they represent the same hext number as anInteger."
 	| cksumFromServer |
 
@@ -71,7 +71,7 @@ RemoteGDBTransfer >> readAndVerifyCksum: anInteger [
 ]
 
 { #category : #API }
-RemoteGDBTransfer >> receive [
+RemoteGDBTransport >> receive [
 	| c stream cksum cc |
 	"Receive and decode the server's response.
 	It may come in chunks on the TCP stream; in that sense, the word Packet may be confusing."
@@ -98,7 +98,7 @@ RemoteGDBTransfer >> receive [
 ]
 
 { #category : #API }
-RemoteGDBTransfer >> receiveByte [
+RemoteGDBTransport >> receiveByte [
 	| buf1 |
 	"Receive exactly one byte, waiting for it if neccesary.
 	This is at a level lower than escaping; see #receiveChar for the escaped version."
@@ -108,7 +108,7 @@ RemoteGDBTransfer >> receiveByte [
 ]
 
 { #category : #API }
-RemoteGDBTransfer >> receiveChar [
+RemoteGDBTransport >> receiveChar [
 	"Receive the next char from the TCP stream."
 
 	| byte |
@@ -118,7 +118,7 @@ RemoteGDBTransfer >> receiveChar [
 ]
 
 { #category : #API }
-RemoteGDBTransfer >> send: aString [
+RemoteGDBTransport >> send: aString [
 	| packet ack n |
 	packet := self assemblePacket: aString.
 	socket sendData: packet.
@@ -130,11 +130,11 @@ RemoteGDBTransfer >> send: aString [
 ]
 
 { #category : #accessing }
-RemoteGDBTransfer >> socket [
+RemoteGDBTransport >> socket [
 	^ socket
 ]
 
 { #category : #accessing }
-RemoteGDBTransfer >> socket: aSocket [
+RemoteGDBTransport >> socket: aSocket [
 	socket := aSocket
 ]

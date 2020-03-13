@@ -1,6 +1,6 @@
 Class {
 	#name : #RemoteGDB,
-	#superclass : #RemoteGDBTransfer,
+	#superclass : #RemoteGDBTransport,
 	#instVars : [
 		'packetSize',
 		'processorDescription',
@@ -84,7 +84,7 @@ RemoteGDB >> c [
 { #category : #private }
 RemoteGDB >> decodeGPacket: aStream [
 	| registerTransfers regs |
-	registerTransfers := processorDescription gdb.
+	registerTransfers := processorDescription regsInGPacket.
 	regs := Dictionary new.
 	registerTransfers do: [ :rt |
 		| nextValue |

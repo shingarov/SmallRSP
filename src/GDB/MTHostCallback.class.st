@@ -1,12 +1,11 @@
 Class {
 	#name : #MTHostCallback,
-	#superclass : #Object,
+	#superclass : #MagicSurgeon,
 	#instVars : [
-		'gdb',
 		'primitiveProcessor',
 		'privatePrimitiveProcessor'
 	],
-	#category : #'GDB-RSP'
+	#category : #'GDB-TAJ'
 }
 
 { #category : #'instance creation' }
@@ -26,16 +25,6 @@ MTHostCallback >> call [
 	regs at: (TAJWriter registerMap at: #X) put: cmRef.
 	gdb setRegisters: regs.
 	gdb s
-]
-
-{ #category : #accessing }
-MTHostCallback >> gdb [
-	^ gdb
-]
-
-{ #category : #accessing }
-MTHostCallback >> gdb: anObject [
-	gdb := anObject
 ]
 
 { #category : #surgery }
@@ -115,7 +104,7 @@ MTHostCallback >> process [
 	callNo = 5 ifTrue: [ ^self call ].
 	callNo = 6 ifTrue: [ ^self handleDNU ].
 	callNo = 7 ifTrue: [ ^self inspectionPoint ].
-	self halt  "Unknown callback"
+	self error: 'Unknown callback'
 ]
 
 { #category : #surgery }

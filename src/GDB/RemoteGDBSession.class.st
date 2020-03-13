@@ -40,8 +40,18 @@ RemoteGDBSession >> currentInstruction [
 { #category : #'RSP commands' }
 RemoteGDBSession >> currentInstructionEncoding [
 	| pc |
-	pc := 	self getRegisters at: 'pc'.  "BOGUS CODE"
+	pc := 	self pc.
 	^self read32At: pc
+]
+
+{ #category : #'RSP commands' }
+RemoteGDBSession >> pc [
+	^self getRegisters at: self pcRegisterName 
+]
+
+{ #category : #'RSP commands' }
+RemoteGDBSession >> pcRegisterName [
+	^'pc'  "BOGUS"
 ]
 
 { #category : #'RSP commands' }
