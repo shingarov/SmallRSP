@@ -100,6 +100,11 @@ FakeProcessorDescriptionPPC class >> features [
 '
 ]
 
+{ #category : #'as yet unclassified' }
+FakeProcessorDescriptionPPC >> architectureName [
+	^'powerpc'
+]
+
 { #category : #accessing }
 FakeProcessorDescriptionPPC >> endian [ 
 	^self class endian

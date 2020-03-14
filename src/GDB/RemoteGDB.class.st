@@ -72,13 +72,21 @@ RemoteGDB class >> testWIN [
 ]
 
 { #category : #'RSP commands' }
+RemoteGDB >> analyzeContinueAnswer: answer [
+	answer isEmpty ifTrue: [ self error: 'Empty answer from GDB server' ].
+	answer = 'S05' ifTrue: [ ^self ].
+	answer first = $T ifTrue: [ ^self ].
+	answer first = $W ifTrue: [ ^self inferiorExited: answer ].
+	"Something unknown / as-yet-unimplemented"
+	self error: answer
+]
+
+{ #category : #'RSP commands' }
 RemoteGDB >> c [
 	" Continue. "
 	| answer |
 	answer := self q: 'c'.  "NB: on some platforms, we have wanted 'vCont;c'.  I forgot why."
-	answer = 'S05' ifFalse: [
-		answer isEmpty ifTrue: [ self error: 'Empty answer from GDB server' ].
-		answer first = $T ifFalse: [self error: answer] ]
+	^self analyzeContinueAnswer: answer
 ]
 
 { #category : #private }
@@ -112,6 +120,13 @@ RemoteGDB >> gtInspectorPreviewIn: composite [
 	composite morph
 		title: 'Registers';
 		morph: [ GdbRegistersMorph on: self ]
+]
+
+{ #category : #'as yet unclassified' }
+RemoteGDB >> inferiorExited: fullAnswer [ 
+	| exitCode |
+	exitCode := Integer readFrom: fullAnswer copyWithoutFirst base: 16.
+	InferiorExited signalWithExitCode: exitCode 
 ]
 
 { #category : #'general query commands' }
@@ -210,7 +225,7 @@ RemoteGDB >> s [
 RemoteGDB >> setRegisters: aDict [
 	| answer stream registerTransfers |
 	stream := WriteStream on: String new.
-	registerTransfers := processorDescription gdb.
+	registerTransfers := processorDescription regsInGPacket.
 	registerTransfers do: [ :rt |
 		rt write: aDict to: stream ].
 	
