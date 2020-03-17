@@ -22,9 +22,9 @@ TAJTargetSetup class >> current [
 { #category : #settings }
 TAJTargetSetup class >> gem5MIPS [
 	| arch |
-	arch := TAJMIPSArchitecture resetDefault.
+	arch := self tajMIPSArchitecture.
 	^self new
-		gdbClass: NBExecutableAwareGDB8K;
+		gdbClass: Gem5SharedRAM8K;
 		host: '192.168.75.2';
 		port: 7000;
 		architecture: arch;
@@ -42,9 +42,9 @@ TAJTargetSetup class >> gem5MIPS [
 { #category : #settings }
 TAJTargetSetup class >> gem5PPC [
 	| arch |
-	arch := TAJPowerArchitecture resetDefault.
+	arch := self tajPOWERArchitecture.
 	^self new
-		gdbClass: NBExecutableAwareGDB; "NBExecutableAwareGDB"
+		gdbClass: Gem5SharedRAM;
 		host: '127.0.0.1';
 		port: 7000;
 		architecture: arch;
@@ -62,9 +62,9 @@ TAJTargetSetup class >> gem5PPC [
 { #category : #settings }
 TAJTargetSetup class >> gem86 [
 	| arch |
-	arch := TAJIA32Architecture resetDefault.
+	arch := self tajIA32Architecture.
 	^self new
-		gdbClass: BufferingExecutableAwareGDB;
+		gdbClass: BufferingRemoteRAM;
 		host: '192.168.75.2';
 		port: 7000;
 		architecture: arch;
@@ -79,9 +79,9 @@ TAJTargetSetup class >> gem86 [
 { #category : #settings }
 TAJTargetSetup class >> mpc5125 [
 	| arch |
-	arch := TAJPowerArchitecture resetDefault.
+	arch := self tajPOWERArchitecture.
 	^self new
-		gdbClass: BufferingExecutableAwareGDB;
+		gdbClass: BufferingRemoteRAM;
 		host: '192.168.75.39';
 		port: 7000;
 		architecture: arch;
@@ -101,9 +101,9 @@ TAJTargetSetup class >> mpc5125 [
 TAJTargetSetup class >> p1025 [
 	"Freescale TWR-P1025 PowerPC e500v2"
 	| arch |
-	arch := TAJPowerArchitecture resetDefault.
+	arch := self tajPOWERArchitecture.
 	^self new
-		gdbClass: BufferingExecutableAwareGDB;
+		gdbClass: BufferingRemoteRAM;
 		host: '192.168.75.199';
 		port: 7000;
 		architecture: arch;
@@ -117,6 +117,21 @@ TAJTargetSetup class >> p1025 [
 		magicInstruction: 16r7D821008;
 		breakpointKind: #trap;
 		yourself
+]
+
+{ #category : #TAJArchitectures }
+TAJTargetSetup class >> tajIA32Architecture [
+	^"TAJIA32Architecture"0 resetDefault
+]
+
+{ #category : #TAJArchitectures }
+TAJTargetSetup class >> tajMIPSArchitecture [
+	^"TAJMIPSArchitecture"0 resetDefault
+]
+
+{ #category : #TAJArchitectures }
+TAJTargetSetup class >> tajPOWERArchitecture [
+	^"TAJPowerArchitecture"0 resetDefault
 ]
 
 { #category : #accessing }

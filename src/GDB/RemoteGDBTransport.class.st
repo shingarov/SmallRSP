@@ -40,6 +40,11 @@ RemoteGDBTransport >> assemblePacket: packetDataString [
 
 ]
 
+{ #category : #'target connection' }
+RemoteGDBTransport >> disconnect [
+	self socket close
+]
+
 { #category : #private }
 RemoteGDBTransport >> escape: aString [
 	^aString inject: '' into: [ :soFar :c | soFar, (self escapeChar: c) ].

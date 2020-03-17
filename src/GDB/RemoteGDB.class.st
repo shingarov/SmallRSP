@@ -149,9 +149,10 @@ RemoteGDB >> insertSWBreakpointAt: addr [
 
 { #category : #'RSP commands' }
 RemoteGDB >> kill [
-	| answer |
+	[ | answer |
 	answer := self q: 'k'.
-	answer = 'OK' ifFalse: [ self error: answer ]
+	answer = 'OK' ifFalse: [ self error: answer ].
+	^self ] on: ConnectionClosed do: [ ^self ]
 
 ]
 
@@ -201,7 +202,7 @@ RemoteGDB >> qStatus [
 RemoteGDB >> qSupported [
 	supported := self q: 'qSupported:swbreak+'.
 	supported isEmpty ifTrue: [ ^self error: 'qSupported returned empty string' ].
-	supported := $; split: supported
+	supported := supported findTokens: ';'
 ]
 
 { #category : #'general query commands' }

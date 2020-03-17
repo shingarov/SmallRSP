@@ -1,31 +1,30 @@
 Class {
-	#name : #NBExecutableAwareGDB,
-	#superclass : #ExecutableAwareGDB,
+	#name : #Gem5SharedRAM,
+	#superclass : #RemoteRAM,
 	#instVars : [
-		'tlb',
-		'hostPtr'
+		'tlb'
 	],
 	#category : #'GDB-RSP'
 }
 
 { #category : #granularity }
-NBExecutableAwareGDB class >> mmuPageSize [
+Gem5SharedRAM class >> mmuPageSize [
 	^4096
 ]
 
 { #category : #granularity }
-NBExecutableAwareGDB class >> offsetMask [
+Gem5SharedRAM class >> offsetMask [
 	^self mmuPageSize - 1
 ]
 
 { #category : #granularity }
-NBExecutableAwareGDB class >> pageMask [
+Gem5SharedRAM class >> pageMask [
 	^16rFFFFFFFF bitXor: self offsetMask
 
 ]
 
 { #category : #access }
-NBExecutableAwareGDB >> forceRead32At: addr [
+Gem5SharedRAM >> forceRead32At: addr [
 	| x |
 	x := super read32At: addr.
 	tlb := self getTLB.
@@ -34,13 +33,13 @@ NBExecutableAwareGDB >> forceRead32At: addr [
 ]
 
 { #category : #'address translation' }
-NBExecutableAwareGDB >> forceReadAt: addr nBytes: n [
+Gem5SharedRAM >> forceReadAt: addr nBytes: n [
 	super readAt: addr nBytes: n.
 	tlb := self getTLB
 ]
 
-{ #category : #access }
-NBExecutableAwareGDB >> forceWriteBytes: aByteArray  toAddr: addr [
+{ #category : #'address translation' }
+Gem5SharedRAM >> forceWriteBytes: aByteArray  toAddr: addr [
 	| x |
 	x := super writeBytes: aByteArray  toAddr: addr.
 	tlb := self getTLB.
@@ -48,8 +47,8 @@ NBExecutableAwareGDB >> forceWriteBytes: aByteArray  toAddr: addr [
 
 ]
 
-{ #category : #access }
-NBExecutableAwareGDB >> forceWriteInt32: int toAddr: addr [
+{ #category : #'address translation' }
+Gem5SharedRAM >> forceWriteInt32: int toAddr: addr [
 	| x |
 	x := super writeInt32: int toAddr: addr.
 	tlb := self getTLB.
@@ -58,9 +57,9 @@ NBExecutableAwareGDB >> forceWriteInt32: int toAddr: addr [
 ]
 
 { #category : #RSP }
-NBExecutableAwareGDB >> getTLB [
+Gem5SharedRAM >> getTLB [
 	| answer |
-	answer := self q: '.'.
+	answer := self gdb q: '.'.
 	answer isEmpty ifTrue: [ self error: 'GDB failed to return TLB' ].
 	^Dictionary newFromAssociations:
 		(((answer substrings: ';')
@@ -69,13 +68,13 @@ NBExecutableAwareGDB >> getTLB [
 ]
 
 { #category : #shmem }
-NBExecutableAwareGDB >> hostPtr [
+Gem5SharedRAM >> hostPtr [
 	hostPtr isNil ifTrue: [ hostPtr := ShmemUFFI allocate: 536870912 ].
 	^hostPtr 
 ]
 
 { #category : #access }
-NBExecutableAwareGDB >> read32At: addr [
+Gem5SharedRAM >> read32At: addr [
 	| phys bytes |
 	phys := self virt2phys: addr.
 	phys isNil ifTrue: [ ^ self forceRead32At: addr ].
@@ -85,7 +84,7 @@ NBExecutableAwareGDB >> read32At: addr [
 ]
 
 { #category : #'address translation' }
-NBExecutableAwareGDB >> readAt: addr nBytes: n [
+Gem5SharedRAM >> readAt: addr nBytes: n [
 	| phys ptr |
 	phys := self virt2phys: addr.
 	phys isNil ifTrue: [ ^ self forceReadAt: addr nBytes: n ].
@@ -94,13 +93,13 @@ NBExecutableAwareGDB >> readAt: addr nBytes: n [
 ]
 
 { #category : #'address translation' }
-NBExecutableAwareGDB >> tlb [
+Gem5SharedRAM >> tlb [
 	tlb isNil ifTrue: [ tlb := self getTLB ].
 	^tlb
 ]
 
 { #category : #'address translation' }
-NBExecutableAwareGDB >> virt2phys: anAddress [
+Gem5SharedRAM >> virt2phys: anAddress [
 	" Answer the physical address for the given virtual address,
 	 if it is mapped, nil otherwise. "
 	| pageVirt pagePhys |
@@ -110,7 +109,7 @@ NBExecutableAwareGDB >> virt2phys: anAddress [
 ]
 
 { #category : #access }
-NBExecutableAwareGDB >> writeBytes: aByteArray toAddr: addr [
+Gem5SharedRAM >> writeBytes: aByteArray toAddr: addr [
 	| phys ptr |
 	phys := self virt2phys: addr.
 	phys isNil ifTrue: [ ^ self forceWriteBytes: aByteArray  toAddr: addr ].
@@ -120,7 +119,7 @@ NBExecutableAwareGDB >> writeBytes: aByteArray toAddr: addr [
 ]
 
 { #category : #access }
-NBExecutableAwareGDB >> writeInt32: int toAddr: addr [
+Gem5SharedRAM >> writeInt32: int toAddr: addr [
 	| phys |
 	phys := self virt2phys: addr.
 	phys isNil ifTrue: [ ^ self forceWriteInt32: int toAddr: addr ].
@@ -131,7 +130,7 @@ NBExecutableAwareGDB >> writeInt32: int toAddr: addr [
 			byteAt: 3 put: ((int bitAnd: 16r0000FF00) >> 8);
 			byteAt: 4 put:  (int bitAnd: 16r000000FF)
 		] ifFalse: [
-			self halt
+			self shouldBeImplemented 
 		]
 
 ]

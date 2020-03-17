@@ -14,7 +14,8 @@ PPCThinshellTestCase >> connectGdbWith: processorDescription [
 	gdb := RemoteGDBSession
 		host: self hostIP
 		port: 7000
-		processorDescription: processorDescription
+		processorDescription: processorDescription.
+	gdb memory: (RemoteRAM gdb: gdb)
 ]
 
 { #category : #tests }
@@ -25,8 +26,8 @@ PPCThinshellTestCase >> fillNZone [
 	(which is where the Program Initializer is expected to put it)
 	into a machine integer suitable for passing to the exit() syscall."
 
-	gdb writeInt32: 16r382002a0 toAddr: nZone+0. "li r1,672"
-	gdb writeInt32: 16r4e800020 toAddr: nZone+4. "blr"
+	gdb memory writeInt32: 16r382002a0 toAddr: nZone+0. "li r1,672"
+	gdb memory writeInt32: 16r4e800020 toAddr: nZone+4. "blr"
 
 ]
 
@@ -50,6 +51,7 @@ PPCThinshellTestCase >> stepThroughThinshellPreamble [
 	nZone := gdb getRegisters at: 'r16'.
 	self assert: nZone equals: 16r10011000.
 	gdb s; s; s; s; s; s. "bunch of nops (there are more!)"
+	self assert: gdb pc equals: 16r100000B4
 ]
 
 { #category : #tests }
@@ -57,7 +59,7 @@ PPCThinshellTestCase >> testManualNZone [
 	self connectGdbWith: FakeProcessorDescriptionPPC new.
 	self stepThroughThinshellPreamble.
 	self fillNZone.
-	self should: [ gdb c ] raise: GdbChildExited
+	self should: [ gdb c ] raise: ConnectionClosed
 	"At this point we expect gem5 to have exited and said,
 	Exit code is 42"
 ]

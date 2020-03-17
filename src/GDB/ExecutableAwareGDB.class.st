@@ -44,11 +44,6 @@ ExecutableAwareGDB >> findPreviousCallers: maxCallersToFind from: spOrNil [
 	^OrderedCollection new
 ]
 
-{ #category : #accessing }
-ExecutableAwareGDB >> flushRAM [
-	"Do nothing because I write directly to the target's memory"
-]
-
 { #category : #representation }
 ExecutableAwareGDB >> getVRegister: r [
 	| nRegister |

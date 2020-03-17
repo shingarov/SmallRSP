@@ -3,7 +3,8 @@ Class {
 	#superclass : #RemoteGDB,
 	#instVars : [
 		'qXfer',
-		'vFile'
+		'vFile',
+		'memory'
 	],
 	#category : #'GDB-RSP'
 }
@@ -36,7 +37,17 @@ RemoteGDBSession >> currentInstruction [
 RemoteGDBSession >> currentInstructionEncoding [
 	| pc |
 	pc := 	self pc.
-	^self read32At: pc
+	^self memory read32At: pc
+]
+
+{ #category : #accessing }
+RemoteGDBSession >> memory [
+	^ memory
+]
+
+{ #category : #accessing }
+RemoteGDBSession >> memory: anObject [
+	memory := anObject
 ]
 
 { #category : #'RSP commands' }
@@ -65,39 +76,6 @@ RemoteGDBSession >> prepareSession [
 RemoteGDBSession >> qXfer [
 	qXfer isNil ifTrue: [ qXfer := RemoteGdbXFER gdb: self ].
 	^ qXfer
-]
-
-{ #category : #'RSP commands' }
-RemoteGDBSession >> read32At: addr [
-	| answer |
-	answer := self q: 'm',
-		addr printStringHex,
-		',4'.
-	processorDescription endian == #little ifTrue: [ answer := answer reverseInt32Endianness ].
-	^Integer readFrom: answer radix: 16
-]
-
-{ #category : #'RSP commands' }
-RemoteGDBSession >> readAt: addr nBytes: n [
-	| answer stream |
-	answer := self q: 'm',
-		addr printStringHex,
-		',',
-		n printStringHex.
-	stream := ReadStream on: answer
-		from: 1
-		to: answer size.
-	answer := ByteArray new: n.
-	1 to: n do: [ :idx |
-		| b |
-		b := stream next: 2.
-		answer at: idx put: (Integer readFrom: b base: 16) ].
-	^answer
-]
-
-{ #category : #'RSP commands' }
-RemoteGDBSession >> readByteAt: addr [
-	^(self readAt: addr nBytes: 1) first
 ]
 
 { #category : #magick }
@@ -155,66 +133,4 @@ RemoteGDBSession >> supportsFeatures [
 RemoteGDBSession >> vFile [
 	vFile isNil ifTrue: [ vFile := RemoteGdbVFILE gdb: self ].
 	^ vFile
-]
-
-{ #category : #'RSP commands' }
-RemoteGDBSession >> writeByte: int toAddr: addr [
-	| textualAddr answer data |
-	data := int printStringBase: 16 length: 2 padded: true.
-	textualAddr := addr printStringBase: 16 length: 8 padded: true.
-	answer := self
-		q: 'M', textualAddr,  ',1:', data.
-	answer = 'OK' ifFalse: [ self error: answer ].
-
-
-]
-
-{ #category : #'RSP commands' }
-RemoteGDBSession >> writeBytes: aByteArray toAddr: addr [
-	| buffer textualAddr answer textualSize |
-	buffer := WriteStream on: ''.
-	aByteArray do: [ :aByte |
-		| data |
-		data := aByte printStringBase: 16 length: 2 padded: true.
-		buffer nextPutAll: data
-	].
-	textualAddr := addr printStringBase: 16 length: 8 padded: true.
-	textualSize := aByteArray size  printStringBase: 16.
-	answer := self
-		q: 'M', textualAddr,  ',', textualSize, ':', buffer contents.
-	answer = 'OK' ifFalse: [ self halt ].
-
-
-]
-
-{ #category : #'RSP commands' }
-RemoteGDBSession >> writeInt32: int toAddr: addr [
-	| textualAddr answer data |
-	data := int printStringBase: 16 length: 8 padded: true.
-	processorDescription endian == #little ifTrue: [ data := data reverseInt32Endianness ].
-	textualAddr := addr printStringBase: 16 length: 8 padded: true.
-	answer := self
-		q: 'M', textualAddr,  ',4:', data.
-	answer = 'OK' ifFalse: [ self error: answer ].
-
-
-]
-
-{ #category : #'RSP commands' }
-RemoteGDBSession >> writeInt32s: arrayOfInt32s toAddr: addr [
-	| buffer textualAddr answer textualSize |
-	buffer := WriteStream on: ''.
-	arrayOfInt32s do: [ :anInt32 |
-		| data |
-		data := anInt32 printStringBase: 16 length: 8 padded: true.
-		processorDescription endian == #little ifTrue: [ data := data reverseInt32Endianness ].
-		buffer nextPutAll: data
-	].
-	textualAddr := addr printStringBase: 16 length: 8 padded: true.
-	textualSize := arrayOfInt32s size * 4 printStringBase: 16.
-	answer := self
-		q: 'M', textualAddr,  ',', textualSize, ':', buffer contents.
-	answer = 'OK' ifFalse: [ self halt ].
-
-
 ]

@@ -1,6 +1,6 @@
 Class {
-	#name : #BufferingExecutableAwareGDB,
-	#superclass : #ExecutableAwareGDB,
+	#name : #BufferingRemoteRAM,
+	#superclass : #RemoteRAM,
 	#instVars : [
 		'buffer',
 		'minAddr',
@@ -11,19 +11,19 @@ Class {
 }
 
 { #category : #accessing }
-BufferingExecutableAwareGDB >> buffer [
+BufferingRemoteRAM >> buffer [
 	buffer isNil ifTrue: [ buffer := ByteArray new: (4*1024*1024) + (1024*1024) + (80*1024*1024) ].
 	^buffer
 ]
 
 { #category : #flushing }
-BufferingExecutableAwareGDB >> chunkSize [
+BufferingRemoteRAM >> chunkSize [
 	"In bytes"
 	^2048 "maybe? this was always 4096, I have no idea why this started breaking in Maribor"
 ]
 
 { #category : #flushing }
-BufferingExecutableAwareGDB >> flushRAM [
+BufferingRemoteRAM >> flushRAM [
 	| firstUnallocatedAddress |
 	firstUnallocatedAddress := self getVRegister: #HEAP.
 	leftFinger := 1.
@@ -34,7 +34,7 @@ BufferingExecutableAwareGDB >> flushRAM [
 ]
 
 { #category : #API }
-BufferingExecutableAwareGDB >> insertSWBreakpointAt: addr [
+BufferingRemoteRAM >> insertSWBreakpointAt: addr [
 	self queuedBreakpoints add: addr
  		
  
@@ -42,19 +42,19 @@ BufferingExecutableAwareGDB >> insertSWBreakpointAt: addr [
 ]
 
 { #category : #accessing }
-BufferingExecutableAwareGDB >> minAddr [
+BufferingRemoteRAM >> minAddr [
 	minAddr isNil ifTrue: [ minAddr := self getVRegister: #NZone ].
 	^minAddr
 ]
 
 { #category : #accessing }
-BufferingExecutableAwareGDB >> queuedBreakpoints [
+BufferingRemoteRAM >> queuedBreakpoints [
 	queuedBreakpoints isNil ifTrue: [ queuedBreakpoints := OrderedCollection new ].
 	^queuedBreakpoints
 ]
 
 { #category : #API }
-BufferingExecutableAwareGDB >> read32At: addr [
+BufferingRemoteRAM >> read32At: addr [
 	leftFinger isNil ifTrue: [
 		^(((self buffer at: addr - self minAddr + 1) << 24
 		bitOr: (self buffer at: addr - self minAddr + 2) << 16)
@@ -65,7 +65,7 @@ BufferingExecutableAwareGDB >> read32At: addr [
 ]
 
 { #category : #flushing }
-BufferingExecutableAwareGDB >> transmitBelow: firstUnallocatedAddress updating: aProgressBar [
+BufferingRemoteRAM >> transmitBelow: firstUnallocatedAddress updating: aProgressBar [
 | bytes thisChunk |
 	bytes := firstUnallocatedAddress - self minAddr.
 	bytes = 0 ifTrue: [ buffer := nil. ^self ].
@@ -80,7 +80,7 @@ self transmitBelow: firstUnallocatedAddress updating: aProgressBar
 ]
 
 { #category : #API }
-BufferingExecutableAwareGDB >> writeBytes: aByteArray toAddr: addr [
+BufferingRemoteRAM >> writeBytes: aByteArray toAddr: addr [
 	| start stop |
 	leftFinger isNil ifTrue: [
 		start := addr - self minAddr + 1.
@@ -90,7 +90,7 @@ BufferingExecutableAwareGDB >> writeBytes: aByteArray toAddr: addr [
 ]
 
 { #category : #API }
-BufferingExecutableAwareGDB >> writeInt32: int toAddr: addr [
+BufferingRemoteRAM >> writeInt32: int toAddr: addr [
 	leftFinger isNil ifTrue: [
 		^self buffer
 			at: addr - self minAddr + 1 put: ((int bitAnd: 16rFF000000) >> 24);

@@ -13,7 +13,7 @@ P1025ThinshellTestCase >> hostIP [
 P1025ThinshellTestCase >> testStepThoughPreamble [
 	self connectGdbWith: FakeProcessorDescriptionP1025 new.
 	self stepThroughThinshellPreamble.
-	self should: [ gdb c ] raise: GdbChildExited 
+	gdb kill
 ]
 
 { #category : #tests }
