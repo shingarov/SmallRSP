@@ -15,14 +15,14 @@ RemoteGDBTransport class >> host: h [
 { #category : #'as yet unclassified' }
 RemoteGDBTransport class >> host: h port: p [
 	| socket |
-	socket := Socket newTCP 
-		setOption: 'TCP_NODELAY' value: 1;
-		connectTo: (NetNameResolver addressForName: h) port: p.
+	socket := SocketStream 
+		openConnectionToHostNamed: h port: p.
 	^self onSocket: socket
 ]
 
 { #category : #'as yet unclassified' }
 RemoteGDBTransport class >> onSocket: aSocket [
+	aSocket binary.
 	^self new socket: aSocket 
 ]
 
@@ -70,7 +70,7 @@ RemoteGDBTransport >> readAndVerifyCksum: anInteger [
 	| cksumFromServer |
 
 	cksumFromServer := Integer
-		readFrom: (String with: self receiveByte with: self receiveByte)
+		readFrom: (String with: self receiveChar with: self receiveChar)
 		radix: 16.
 	"cksumFromServer = anInteger ifFalse: [ self error: 'Wrong checksum' ]"
 ]
@@ -81,7 +81,7 @@ RemoteGDBTransport >> receive [
 	"Receive and decode the server's response.
 	It may come in chunks on the TCP stream; in that sense, the word Packet may be confusing."
 	
-	self receiveByte = $$ ifFalse: [ self error: 'Packet does not start with $' ].
+	self receiveChar = $$ ifFalse: [ self error: 'Packet does not start with $' ].
 
 	stream := WriteStream with: ''.
 	cksum := 0.
@@ -95,8 +95,9 @@ RemoteGDBTransport >> receive [
 		"RLE"
 		 ] ifFalse: [ stream nextPut: c. cc := c. ]].
 "TODO: escaping"
+	socket flush.
 	self readAndVerifyCksum: cksum.
-	socket sendData: '+'. 
+	socket nextPutAll: '+'; flush.
 
 	^stream contents
 
@@ -104,12 +105,9 @@ RemoteGDBTransport >> receive [
 
 { #category : #API }
 RemoteGDBTransport >> receiveByte [
-	| buf1 |
 	"Receive exactly one byte, waiting for it if neccesary.
 	This is at a level lower than escaping; see #receiveChar for the escaped version."
-	buf1 := ByteString new: 1.
-	(socket receiveDataInto: buf1) == 1 ifFalse: [GdbChildExited new signal].
-	^buf1 first
+	^socket next
 ]
 
 { #category : #API }
@@ -119,19 +117,16 @@ RemoteGDBTransport >> receiveChar [
 	| byte |
 	byte := self receiveByte.
 	"Do NOT escape at this level; check for RLE, and then escaping is above."
-	^byte
+	^Character value: byte
 ]
 
 { #category : #API }
 RemoteGDBTransport >> send: aString [
-	| packet ack n |
+	| packet ack |
 	packet := self assemblePacket: aString.
-	socket sendData: packet.
-	ack := '*'.
-	n := socket receiveDataInto: ack.
-	ack = '+' ifFalse: [ self error: 'gdb server answered ', ack ].
-(Delay forMilliseconds: 50) wait.
-
+	socket nextPutAll: packet; flush.
+	ack := socket next.
+	ack = 43 "+" ifFalse: [ self error: 'gdb server answered ', ack ]
 ]
 
 { #category : #accessing }
