@@ -18,17 +18,12 @@ RemoteGDBSession >> advancePastTrap [
 
 { #category : #'RSP commands' }
 RemoteGDBSession >> askFeatures [
-	" Ask the stub for the target feature descriptor.
-	  If the stub provides it, override the default in the PDL. "
-	| features |
-	" must look at qSupported here.  If features is not supported, bail. "
-	features := supported detect: [ :s | s beginsWith: 'qXfer:features:' ] ifNone: [ ^self ].
-	features = 'qXfer:features:read+' ifFalse: [ self error: 'Havent encountered such a CPU yet; investigate' ].
-
-	features := self qXfer features: 'target.xml'.
-	features isNil ifTrue: [ ^self ].
-	processorDescription gdb: (GdbXmlParser new processXML: features)
-
+	" Ask the stub for the target feature descriptor, and return it.
+	  If the stub doesn't provide it, return nil. "
+	self supportsFeatures
+		ifTrue: [ ^self qXfer features: 'target.xml' ]
+		ifFalse: [ ^nil ]
+		
 ]
 
 { #category : #'RSP commands' }
@@ -44,9 +39,21 @@ RemoteGDBSession >> currentInstructionEncoding [
 	^self read32At: pc
 ]
 
+{ #category : #accessing }
+RemoteGDBSession >> getRegister: r [
+	| regs |
+	regs := self getRegisters.
+	^regs at: r
+]
+
 { #category : #'RSP commands' }
 RemoteGDBSession >> pc [
-	^self getRegisters at: self pcRegisterName 
+	^self getRegister: self processorDescription pcRegisterName 
+]
+
+{ #category : #'RSP commands' }
+RemoteGDBSession >> pc: newPC [
+	^self setRegister: self processorDescription pcRegisterName to: newPC
 ]
 
 { #category : #'RSP commands' }
@@ -61,12 +68,21 @@ RemoteGDBSession >> prepareSession [
 	self setThread: 'g' t: 0.
 	self qStatus = '' ifFalse: [ self error: 'Bad status' ].
 	self vCont.
-	self askFeatures.
-"Source says that Hc is deprecated in favor of vCont."
-"	self setThread: 'c' t: -1. "
 
-"	self qTStatus.
-	self why"
+	self askFeatures ifNotNil: [ :xml | processorDescription regsInGPacket: (GdbXmlParser new processXML: xml) ]
+
+]
+
+{ #category : #printing }
+RemoteGDBSession >> printRegistersOn: aStream [
+	| allRegisters |
+	allRegisters := self getRegisters.
+	allRegisters keysAndValuesDo: [ :regName :regValue |
+		(#('ds' 'ss' 'cs' 'es' 'fs' 'gs') includes: regName) ifFalse: [
+			aStream nextPutAll: regName; nextPutAll: ': '.
+			regValue printOn: aStream base: 16 length: 8 padded: true.
+			aStream cr	
+	]]
 ]
 
 { #category : #'RSP Helpers' }
@@ -130,10 +146,8 @@ RemoteGDBSession >> runWithMagickCallback: magicCallbackBlock [
 
 { #category : #accessing }
 RemoteGDBSession >> setRegister: r to: x [
-	| regs |
-	regs := self getRegisters.
-	regs at: 'r', r printString put: x.
-	self setRegisters: regs
+	self getRegisters at: r put: x
+
 ]
 
 { #category : #'RSP commands' }
@@ -146,6 +160,17 @@ RemoteGDBSession >> stepUntil: aBlock [
 { #category : #magick }
 RemoteGDBSession >> stepUntilMagick [
 	self stepUntil: [ self currentInstructionEncoding = self exe objectMemory targetSetup magicInstruction ]
+]
+
+{ #category : #'RSP commands' }
+RemoteGDBSession >> supportsFeatures [
+	" Answer whether the stub supports target feature descriptors. "
+	| features |
+	features := supported detect: [ :s | s beginsWith: 'qXfer:features:' ] ifNone: [ ^false ].
+	features = 'qXfer:features:read+' ifFalse: [ self error: 'Havent encountered such a CPU yet; investigate' ].
+	"In reality the following line must be, ^true."
+	^false "disabled for now, before we have xi:include in the XML parser"
+
 ]
 
 { #category : #'RSP Helpers' }

@@ -16,7 +16,6 @@ RemoteGDBTransport class >> host: h [
 RemoteGDBTransport class >> host: h port: p [
 	| socket |
 	socket := Socket newTCP 
-		setOption: 'TCP_NODELAY' value: 1;
 		connectTo: (NetNameResolver addressForName: h) port: p.
 	^self onSocket: socket
 ]
@@ -38,6 +37,11 @@ RemoteGDBTransport >> assemblePacket: packetDataString [
 	cksum := packetDataString  inject: 0 into: [ :soFar :c | soFar + c asciiValue \\ 256 ].
 	^s, (cksum printStringBase: 16 nDigits: 2) asLowercase 
 
+]
+
+{ #category : #'target connection' }
+RemoteGDBTransport >> disconnect [
+	self socket close
 ]
 
 { #category : #private }
@@ -124,8 +128,7 @@ RemoteGDBTransport >> send: aString [
 	socket sendData: packet.
 	ack := '*'.
 	n := socket receiveDataInto: ack.
-	ack = '+' ifFalse: [ self error: 'gdb server answered ', ack ].
-(Delay forMilliseconds: 50) wait.
+	ack = '+' ifFalse: [ self error: 'gdb server answered ', ack ]
 
 ]
 

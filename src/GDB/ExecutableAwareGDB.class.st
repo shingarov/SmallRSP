@@ -4,7 +4,7 @@ Class {
 	#instVars : [
 		'exe'
 	],
-	#category : #'GDB-RSP'
+	#category : #'GDB-TAJ'
 }
 
 { #category : #representation }

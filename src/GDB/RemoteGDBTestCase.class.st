@@ -1,3 +1,7 @@
+"
+I am deprecated leftover from TA-MT.
+
+"
 Class {
 	#name : #RemoteGDBTestCase,
 	#superclass : #TestCase,
@@ -5,7 +9,7 @@ Class {
 		'gdb',
 		'pdl'
 	],
-	#category : #'GDB-Tests'
+	#category : #'GDB-Doodles'
 }
 
 { #category : #'as yet unclassified' }

@@ -161,7 +161,7 @@ PrimitiveProcessor >> primCharacterBasicAtPut [
 	(charOop bitAnd: 2r00011) = 2 ifFalse: [ ^self markFail ].
 	char := charOop >> 4.
 	
-	gdb writeByte: char toAddr: (self getVRegister: #R) + 8 + index - 1.
+	gdb byteAt: (self getVRegister: #R) + 8 + index - 1 put: char.
 	
 	self return: charOop
 ]

@@ -7,7 +7,8 @@ Class {
 		'tStatus',
 		'why',
 		'supported',
-		'vCont'
+		'vCont',
+		'registerCache'
 	],
 	#category : #'GDB-RSP'
 }
@@ -71,14 +72,59 @@ RemoteGDB class >> testWIN [
 
 ]
 
+{ #category : #'stop codes' }
+RemoteGDB >> analyzeContinueAnswer: answer [
+	answer isEmpty ifTrue: [ self error: 'Empty Stop-Reply packet' ].
+	answer first = $S ifTrue: [ ^self analyzeContinueAnswerS: answer allButFirst ].
+	answer first = $T ifTrue: [ ^self analyzeContinueAnswerT: answer allButFirst ].
+	answer first = $W ifTrue: [ ^self inferiorExited: answer ].
+	"Something unknown / as-yet-unimplemented"
+	self error: answer
+]
+
+{ #category : #'stop codes' }
+RemoteGDB >> analyzeContinueAnswerS: answer [
+	"The program received signal number AA (a two-digit hexadecimal number).
+	This is equivalent to a T response with no n:r pairs."
+	^DebugStopped onSignalNum: (self signalNumberFrom: answer)
+
+]
+
+{ #category : #'stop codes' }
+RemoteGDB >> analyzeContinueAnswerT: answer [
+	| signal textPairs importantRegs thread core stopReason stopArgument |
+	signal := self signalNumberFrom: answer.
+	textPairs := answer copyFrom: 3 to: answer size.
+	textPairs := textPairs findTokens: ';'.
+	importantRegs := Dictionary new.
+	core := nil.
+	thread := nil.
+	stopReason := nil.
+	stopArgument := nil.
+	textPairs do: [ :textPair |
+		| pair k v |
+		pair := textPair findTokens: ':'.
+		k := pair first.
+		v := pair second.
+		(self recognizedStopCodes includes: k)
+			ifTrue: [ stopReason := k. stopArgument := v ] ifFalse: [
+		k = 'thread' ifTrue: [ thread := v ] ifFalse: [
+		k = 'core' ifTrue: [ core := v ] ifFalse: [
+		importantRegs at: k put: (Integer readFrom: k base: 16)
+		"TODO: Missing the reserved case;
+		this will be handled by catching exception in #readFrom: and discarding it"
+	]]]].
+	"TODO: wrap all these things in the DebugStopped"
+	^DebugStopped onSignalNum: signal
+]
+
 { #category : #'RSP commands' }
 RemoteGDB >> c [
 	" Continue. "
 	| answer |
+	self resetRegisterCache.
 	answer := self q: 'c'.  "NB: on some platforms, we have wanted 'vCont;c'.  I forgot why."
-	answer = 'S05' ifFalse: [
-		answer isEmpty ifTrue: [ self error: 'Empty answer from GDB server' ].
-		answer first = $T ifFalse: [self error: answer] ]
+	^self analyzeContinueAnswer: answer
 ]
 
 { #category : #private }
@@ -96,13 +142,20 @@ RemoteGDB >> decodeGPacket: aStream [
 
 ]
 
-{ #category : #'RSP commands' }
+{ #category : #'register cache' }
 RemoteGDB >> getRegisters [
+	registerCache isNil ifTrue: [ registerCache := self getRegistersFromRSP ].
+	^registerCache
+]
+
+{ #category : #'RSP commands' }
+RemoteGDB >> getRegistersFromRSP [
 	| answer stream |
 	answer := self q: 'g'.
 	stream := ReadStream on: answer
 		from: 1
 		to: answer size.
+
 	^self decodeGPacket: stream
 ]
 
@@ -114,12 +167,20 @@ RemoteGDB >> gtInspectorPreviewIn: composite [
 		morph: [ GdbRegistersMorph on: self ]
 ]
 
+{ #category : #'stop codes' }
+RemoteGDB >> inferiorExited: fullAnswer [ 
+	| exitCode |
+	exitCode := Integer readFrom: fullAnswer copyWithoutFirst base: 16.
+	InferiorExited signalWithExitCode: exitCode 
+]
+
 { #category : #'general query commands' }
 RemoteGDB >> insertHWBreakpointAt: addr [
 	| answer |
 	answer := self q: 'Z1,',
 		addr printStringHex,
-		',4'.
+		',',
+		self z1kind printStringHex.
 	answer = 'OK' ifFalse: [ self error ]
 ]
 
@@ -134,9 +195,10 @@ RemoteGDB >> insertSWBreakpointAt: addr [
 
 { #category : #'RSP commands' }
 RemoteGDB >> kill [
-	| answer |
+	[ | answer |
 	answer := self q: 'k'.
-	answer = 'OK' ifFalse: [ self error: answer ]
+	answer = 'OK' ifFalse: [ self error: answer ].
+	^self ] on: ConnectionClosed do: [ ^self ]
 
 ]
 
@@ -186,7 +248,7 @@ RemoteGDB >> qStatus [
 RemoteGDB >> qSupported [
 	supported := self q: 'qSupported:swbreak+'.
 	supported isEmpty ifTrue: [ ^self error: 'qSupported returned empty string' ].
-	supported := $; split: supported
+	supported := supported findTokens: ';'
 ]
 
 { #category : #'general query commands' }
@@ -194,28 +256,51 @@ RemoteGDB >> qTStatus [
 	tStatus := self q: 'qTStatus'
 ]
 
+{ #category : #'stop codes' }
+RemoteGDB >> recognizedStopCodes [
+	^#(
+	'watch' 'rwatch' 'awatch'
+	'syscall_entry' 'syscall_return'
+	'library' 'replaying'
+	'swbreak'	'hwbreak'
+	'fork' 'vfork' 	'vforkdone'
+	'exec' 'create'
+	)
+]
+
+{ #category : #'register cache' }
+RemoteGDB >> resetRegisterCache [
+	registerCache isNil ifFalse: [self sendRegistersToRSP].
+	registerCache := nil
+]
+
 { #category : #'RSP commands' }
 RemoteGDB >> s [
 	"Single step.
-	Return control with signal 5 (TRAP)."
+	Return control with signal 5 (TRAP),
+	or if the execution of the current instruction failed, with whatever signal happened."
 	| answer |
+	self resetRegisterCache.
 	answer := self q: 's'.
-	answer first = $S ifTrue: [ ^self ].
-	answer first = $T ifTrue: [ ^self ].
-	self error: answer
+	^self analyzeContinueAnswer: answer
 
 ]
 
 { #category : #'RSP commands' }
-RemoteGDB >> setRegisters: aDict [
+RemoteGDB >> sendRegistersToRSP [
 	| answer stream registerTransfers |
 	stream := WriteStream on: String new.
-	registerTransfers := processorDescription gdb.
+	registerTransfers := processorDescription regsInGPacket.
 	registerTransfers do: [ :rt |
-		rt write: aDict to: stream ].
+		rt write: registerCache to: stream ].
 	
 	answer := self q: 'G', stream contents.	
 	answer = 'OK' ifFalse: [self error: answer]
+]
+
+{ #category : #'register cache' }
+RemoteGDB >> setRegisters: aDict [
+	self shouldBeImplemented
 ]
 
 { #category : #'RSP commands' }
@@ -224,6 +309,12 @@ RemoteGDB >> setThread: c t: t [
 	| answer |
 	answer := self q: 'H', c, t printStringHex.
 	answer = 'OK' "ifFalse: [ self error: answer ]" "I've seen this happen in normal operation of the GNU GDB and silently ignored"
+
+]
+
+{ #category : #'stop codes' }
+RemoteGDB >> signalNumberFrom: answer [
+	^Integer readFrom: (answer copyFrom: 1 to: 2) base: 16
 
 ]
 
@@ -410,4 +501,9 @@ RemoteGDB >> writeBytes: aByteArray toAddr: addr [
 		answer = 'OK' ifFalse: [ self error: answer ].
 		currAddr := currAddr + 1
 	]
+]
+
+{ #category : #'general query commands' }
+RemoteGDB >> z1kind [
+	^processorDescription z1kind
 ]
