@@ -23,7 +23,6 @@ FakeProcessorDescription >> initRegsInGPacket [
 		rt := RSPOneRegisterTransfer new
 			regName: (reg first);
 			width: (reg second);
-			isLittleEndian: (self endian = #little);
 			regNum: regNum;
 			yourself.
 		regNum := regNum + 1.

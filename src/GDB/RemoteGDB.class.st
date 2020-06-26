@@ -135,7 +135,7 @@ RemoteGDB >> decodeGPacket: aStream [
 	registerTransfers do: [ :rt |
 		| nextValue |
 		aStream atEnd ifTrue: [ ^regs ].
-		nextValue := rt readFrom: aStream.
+		nextValue := rt readFrom: aStream endian: processorDescription endian.
 		regs at: rt regName put: nextValue ].
 	^regs
 
@@ -292,7 +292,7 @@ RemoteGDB >> sendRegistersToRSP [
 	stream := WriteStream on: String new.
 	registerTransfers := processorDescription regsInGPacket.
 	registerTransfers do: [ :rt |
-		rt write: registerCache to: stream ].
+		rt write: registerCache to: stream endian: processorDescription endian ].
 	
 	answer := self q: 'G', stream contents.	
 	answer = 'OK' ifFalse: [self error: answer]

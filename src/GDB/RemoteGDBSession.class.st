@@ -48,7 +48,7 @@ RemoteGDBSession >> getRegister: r [
 
 { #category : #'RSP commands' }
 RemoteGDBSession >> pc [
-	^self getRegister: self processorDescription pcRegisterName 
+	^self getRegister: self pcRegisterName 
 ]
 
 { #category : #'RSP commands' }

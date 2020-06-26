@@ -32,8 +32,7 @@ Gem5SharedRAM halt; gem5: 5000
 { #category : #FFI }
 SharedRAM class >> mmap: addr with: length with: prot with: flags with: fd with: offset [
 	"<cdecl: 'void*' 'mmap' (longlong longlong long long long longlong) module: '/lib/x86_64-linux-gnu/libc.so.6'>"
-	^self externalCallFailed
-
+	^LibC uniqueInstance mmap: addr with: length with: prot with: flags with: fd with: offset
 ]
 
 { #category : #granularity }
@@ -53,10 +52,8 @@ SharedRAM class >> pageMask [
 ]
 
 { #category : #FFI }
-SharedRAM class >> shmOpen: name with: oflag with: mode [
-	"<cdecl: ulong 'shm_open' (char* ulong ulong) module: '/lib/x86_64-linux-gnu/librt.so.1'>"
-	^self externalCallFailed
-
+SharedRAM class >> shmOpen: fileName with: oflag with: mode [
+	^LibRT uniqueInstance shmOpen: fileName with: oflag with: mode
 ]
 
 { #category : #writing }
