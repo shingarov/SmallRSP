@@ -32,6 +32,7 @@ GdbXmlParser >> parseString: s [
 GdbXmlParser >> processXML: xmlDocument [
 	| registerArray oneRegTransfers regNum |
 	registerArray := xmlDocument findXPath: 'feature/reg'.
+	registerArray isNil ifTrue: [ self error ].
 	regNum := 0.
 	oneRegTransfers := registerArray collect: [ :regNode |
 		| rt |
