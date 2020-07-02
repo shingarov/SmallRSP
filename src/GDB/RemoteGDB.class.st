@@ -14,10 +14,9 @@ Class {
 }
 
 { #category : #'instance creation' }
-RemoteGDB class >> host: h port: p processorDescription: pd [
+RemoteGDB class >> host: h port: p [
 	"Create an instance, connect to the remote server, and fully prepare the debugging session."
-	^(self host: h port: p)
-		processorDescription: pd;
+	^(super host: h port: p)
 		prepareSession;
 		yourself
 ]
@@ -129,14 +128,14 @@ RemoteGDB >> c [
 
 { #category : #private }
 RemoteGDB >> decodeGPacket: aStream [
-	| registerTransfers regs |
-	registerTransfers := processorDescription regsInGPacket.
+	| regs |
 	regs := Dictionary new.
-	registerTransfers do: [ :rt |
+	processorDescription regsInGPacket do: [ :rt |
 		| nextValue |
-		aStream atEnd ifTrue: [ ^regs ].
+		aStream atEnd ifTrue: [ self error: 'g-packet provided by stub is too short' ].
 		nextValue := rt readFrom: aStream endian: processorDescription endian.
 		regs at: rt regName put: nextValue ].
+	aStream atEnd ifFalse: [ self error: 'g-packet provided by stub is too long' ].
 	^regs
 
 
@@ -223,8 +222,9 @@ RemoteGDB >> processorDescription [
 ]
 
 { #category : #private }
-RemoteGDB >> processorDescription: descr [
-	processorDescription := descr
+RemoteGDB >> processorDescription: aPDL [
+	processorDescription isNil ifFalse: [ self error: 'Target architecture already set' ].
+	processorDescription := aPDL
 ]
 
 { #category : #private }
@@ -246,14 +246,24 @@ RemoteGDB >> qStatus [
 
 { #category : #'general query commands' }
 RemoteGDB >> qSupported [
-	supported := self q: 'qSupported:swbreak+'.
+	supported := self q: self qSupportedQuery.
 	supported isEmpty ifTrue: [ ^self error: 'qSupported returned empty string' ].
 	supported := supported findTokens: ';'
 ]
 
 { #category : #'general query commands' }
+RemoteGDB >> qSupportedQuery [
+	^'qSupported:swbreak+;hwbreak+;xmlRegisters=i386'
+]
+
+{ #category : #'general query commands' }
 RemoteGDB >> qTStatus [
 	tStatus := self q: 'qTStatus'
+]
+
+{ #category : #'RSP commands' }
+RemoteGDB >> r: start end: end [ 
+	self shouldBeImplemented 
 ]
 
 { #category : #'stop codes' }
@@ -481,6 +491,13 @@ self writeInt32s: instr toAddr: pc.
 RemoteGDB >> vCont [
 	"Stepping mechanisms supported by the server"
 	vCont := self q: 'vCont?'
+]
+
+{ #category : #'general query commands' }
+RemoteGDB >> vMustReplyEmpty [
+	| answer |
+	answer := self q: 'vMustReplyEmpty'.
+	answer isEmpty ifFalse: [ ^self error ]
 ]
 
 { #category : #'RSP commands' }

@@ -11,8 +11,7 @@ Class {
 GDBDoodle >> connectGdb [
 	gdb := self debuggerClass
 		host: self hostIP
-		port: self tcpPort
-		processorDescription: self pdl.
+		port: self tcpPort.
 	^gdb
 ]
 

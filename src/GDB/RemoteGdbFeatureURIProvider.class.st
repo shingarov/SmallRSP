@@ -26,5 +26,5 @@ RemoteGdbFeatureURIProvider >> gdb: anObject [
 
 { #category : #API }
 RemoteGdbFeatureURIProvider >> get: filename [
-	^gdb qXfer features: filename
+	^gdb qXfer readFeatureXML: filename
 ]

@@ -26,19 +26,6 @@ RemoteGDBSession >> askFeatures [
 		
 ]
 
-{ #category : #'RSP commands' }
-RemoteGDBSession >> currentInstruction [
-	^processorDescription disassemble: self currentInstructionEncoding
-
-]
-
-{ #category : #'RSP commands' }
-RemoteGDBSession >> currentInstructionEncoding [
-	| pc |
-	pc := 	self pc.
-	^self read32At: pc
-]
-
 { #category : #accessing }
 RemoteGDBSession >> getRegister: r [
 	| regs |
@@ -58,18 +45,23 @@ RemoteGDBSession >> pc: newPC [
 
 { #category : #'RSP commands' }
 RemoteGDBSession >> pcRegisterName [
-	^'pc'  "BOGUS"
+	self processorDescription architectureName = 'IA32' ifTrue: [ ^'eip' ].
+	self processorDescription architectureName = 'AMD64' ifTrue: [ ^'rip' ].
+	^'pc'  "BOGUS: how do we know it's pc everywhere else??"
 ]
 
 { #category : #'RSP commands' }
 RemoteGDBSession >> prepareSession [
 	self qSupported.
+	self vMustReplyEmpty.
 	self packetSize.
 	self setThread: 'g' t: 0.
 	self qStatus = '' ifFalse: [ self error: 'Bad status' ].
 	self vCont.
 
-	self askFeatures ifNotNil: [ :xml | processorDescription regsInGPacket: (GdbXmlParser new processXML: xml) ]
+	self askFeatures 
+		ifNil: [ self fillDefaultFeatures ]
+		ifNotNil: [ :regs | processorDescription regsInGPacket: regs ]
 
 ]
 
@@ -168,9 +160,7 @@ RemoteGDBSession >> supportsFeatures [
 	| features |
 	features := supported detect: [ :s | s beginsWith: 'qXfer:features:' ] ifNone: [ ^false ].
 	features = 'qXfer:features:read+' ifFalse: [ self error: 'Havent encountered such a CPU yet; investigate' ].
-	"In reality the following line must be, ^true."
-	^false "disabled for now, before we have xi:include in the XML parser"
-
+	^true
 ]
 
 { #category : #'RSP Helpers' }
