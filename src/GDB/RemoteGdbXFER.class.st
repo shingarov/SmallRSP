@@ -31,7 +31,6 @@ RemoteGdbXFER >> processTargetElement: target [
 { #category : #'as yet unclassified' }
 RemoteGdbXFER >> readAnnexResponse: filename from: offset [
 	| offsetHex |
-self halt.
 	offsetHex := offset printStringHex.
 	^gdb q: 'qXfer:features:read:', filename, ':', offsetHex, ',4000'
 ]
