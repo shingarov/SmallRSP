@@ -982,11 +982,6 @@ TargetAwareARM >> pc: anUnsignedInteger [
 	^anUnsignedInteger
 ]
 
-{ #category : #'target connection' }
-TargetAwareARM >> pdl [
-	^FakeProcessorDescriptionARM new
-]
-
 { #category : #opcodes }
 TargetAwareARM >> popPcOpcode [
 "See also CogARMCompiler>concretizePopR"

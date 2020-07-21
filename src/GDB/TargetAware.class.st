@@ -74,8 +74,7 @@ TargetAware >> bogusRetPC [
 TargetAware >> connectGdb [
 	gdb := self debuggerClass
 		host: self hostIP
-		port: self tcpPort
-		processorDescription: self pdl.
+		port: self tcpPort.
 	self runThinshellPrologue.
 	^self "not gdb; #new needs the instance"
 ]
@@ -152,7 +151,7 @@ TargetAware >> isWithinMappedRange: anAddress [
 
 { #category : #'target connection' }
 TargetAware >> pdl [
-	self subclassResponsibility
+	^gdb processorDescription 
 ]
 
 { #category : #execution }

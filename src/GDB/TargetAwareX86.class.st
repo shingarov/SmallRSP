@@ -579,11 +579,6 @@ TargetAwareX86 >> pc: newPC [
 	^self eip: newPC
 ]
 
-{ #category : #'target connection' }
-TargetAwareX86 >> pdl [
-	^FakeProcessorDescriptionX86 new
-]
-
 { #category : #execution }
 TargetAwareX86 >> popWordIn: aMemory [ 
 	| sp word |
