@@ -129,7 +129,8 @@ SharedRAM >> longAtAddr: addr put: aValue bigEndian: bigEndian [
 		ifTrue: [ aValue byteSwap32 ]
 		ifFalse: [ aValue ].
 	ptr := self translate: addr.
-	ptr unsignedLongAt: 1 put: int
+	ptr unsignedLongAt: 1 put: int.
+	^aValue
 	
 	
 	
