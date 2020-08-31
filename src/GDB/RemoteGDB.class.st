@@ -372,7 +372,7 @@ self halt.
 	self writeInt32s: instr toAddr: pc.
 	self writeInt32s: instr toAddr: pc+4.
 	self writeInt32s: instr toAddr: pc+8.
-	instr := processorDescription disassemble: (self read32At: pc).
+	instr := processorDescription decode: (self read32At: pc).
 	self halt.
 	self s.
 	regs := self getRegisters.
@@ -380,7 +380,7 @@ self halt.
 	regs := self getRegisters.
 	newPC := regs at: 'pc'.
 	newPC == (pc+4) ifFalse: [ self error ].
-	instr := processorDescription disassemble: (self read32At: newPC).
+	instr := processorDescription decode: (self read32At: newPC).
 	instr name = 'ori' ifFalse: [ self error ]
 		
 	
@@ -426,7 +426,7 @@ self halt.
 	self writeInt32s: instr toAddr: pc.
 	self writeInt32s: instr toAddr: pc+4.
 	self writeInt32s: instr toAddr: pc+8.
-	instr := processorDescription disassemble: (self read32At: pc).
+	instr := processorDescription decode: (self read32At: pc).
 	self halt.
 	self s.
 	regs := self getRegisters.
@@ -434,7 +434,7 @@ self halt.
 	regs := self getRegisters.
 	newPC := regs at: 'pc'.
 	newPC == (pc+4) ifFalse: [ self error ].
-	instr := processorDescription disassemble: (self read32At: newPC).
+	instr := processorDescription decode: (self read32At: newPC).
 	instr name = 'ori' ifFalse: [ self error ]
 		
 	
@@ -450,7 +450,7 @@ RemoteGDB >> testSimics1 [
 	regs := self getRegisters.
 	newPC := regs at: 'pc'.
 	newPC == (pc+4) ifFalse: [ self error ].
-	instr := processorDescription disassemble: (self read32At: newPC).
+	instr := processorDescription decode: (self read32At: newPC).
 	instr name = 'addis' ifFalse: [ self error ]
 		
 	

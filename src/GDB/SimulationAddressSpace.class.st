@@ -28,7 +28,7 @@ SimulationAddressSpace >> bytesPerElement [
 
 { #category : #'as yet unclassified' }
 SimulationAddressSpace >> currentInstruction [
-	^self gdb processorDescription disassemble: self currentInstructionEncoding
+	^self gdb processorDescription decode: self currentInstructionEncoding
 ]
 
 { #category : #'as yet unclassified' }
