@@ -522,5 +522,5 @@ RemoteGDB >> writeBytes: aByteArray toAddr: addr [
 
 { #category : #'general query commands' }
 RemoteGDB >> z1kind [
-	^processorDescription z1kind
+	^4 "bogus; for now"
 ]
