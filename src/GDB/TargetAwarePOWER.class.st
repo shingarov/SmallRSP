@@ -36,33 +36,6 @@ TargetAwarePOWER class >> wordSize [
 	^4
 ]
 
-{ #category : #'error handling' }
-TargetAwarePOWER >> XXXhandleExecutionPrimitiveFailureIn: memoryArray "<Bitmap|ByteArray>" minimumAddress: minimumAddress [ "<Integer>"
-	"Handle an execution primitive failure.  Convert out-of-range call and absolute
-	 memory read into register instructions into ProcessorSimulationTrap signals."
-	"self printRegistersOn: Transcript"
-	| pcOnEntry pc instr |
-	pc := pcOnEntry := self pc.
-	self endCondition = #InstructionPrefetchError ifTrue:
-		[pc := self pc: self priorPc].
-
-	(pc between: minimumAddress and: memoryArray byteSize - 1) ifTrue:
-		[instr := memoryArray unsignedLongAt:  pc + 1 bigEndian: false.
-
-		 (self endCondition = #InstructionPrefetchError) ifTrue:
-			[^self handleFailingBranch: instr to: pcOnEntry at: pc].
-
-		 (self instructionIsAnyLoadStore: instr) ifTrue:
-			[^self handleFailingLoadStore: instr at: pc].
-
-		 (self instructionIsAnyFPArithmetic: instr) ifTrue:
-			[^self handleFailingFPArithmetic: instr at: pc].
-
-		 ^self handleExecutionPrimitiveFailureAt: pc in: memoryArray].
-
-	^self reportPrimitiveFailure
-]
-
 { #category : #'Cog API' }
 TargetAwarePOWER >> abstractInstructionCompilerClass [
 	^CogPOWERCompiler
@@ -293,46 +266,6 @@ TargetAwarePOWER >> extractOffsetFromBL: instr [
 	(relativeJump bitShift: -23) = 0 ifTrue:
 		[^relativeJump bitShift: 2].
 	^((relativeJump bitOr: 16r3F000000) bitShift: 2) signedIntFromLong
-]
-
-{ #category : #'accessing-abstract' }
-TargetAwarePOWER >> extractOffsetFromLoadStore: instr [
-"work out the address offset implied by instr.
-We assume it has been determined it is actually a load store before attaching any meaning to the result.
-If it is post-indexed, then the offset must be 0, no matter what else is encoded.
-If the instr is immediate-offset, pull the relevent bits out of instr.
-If it is register-offset, pull the value from the indicated register."
-	|offset shiftAmt shiftType |
-
-	"post-indexed means no offset to the read address"
-	(instr bitAnd: 1 << 24) = 0 ifTrue:[^0].
-	
-	(self instructionIsImmediateOffsetLoadStore: instr)
-		ifTrue:["two cases apply - a 12bit immediate for 010 group instructions and an 8bit for 000 group ldrh stuff"
-			(instr >> 25 bitAnd: 7) = 2
-				ifTrue:[ "immed word or byte op, with 12bit offset"
-					offset := instr bitAnd: 16rFFF]
-				ifFalse:["halfword 8bit offset"
-					offset := (instr bitAnd: 16rF00)>>4 bitOr: (instr bitAnd: 16rF)]].
-
-	(self instructionIsRegisterOffsetLoadStore: instr)
-		ifTrue:["both forms use same offset-reg encoding"
-			offset := self perform:(self registerStateGetters at:(instr bitAnd: 16rF) + 1).
-			(instr >> 25 bitAnd: 7) = 3
-				ifTrue:[ "register offset with assorted modifiers"
-					"sort out modifiers"
-					shiftType := instr >> 5 bitAnd: 3.
-					shiftAmt := instr  >>7 bitAnd: 16r1F.
-					shiftType = 0"lsl" ifTrue:[offset := offset << shiftAmt.].
-					shiftType = 1"lsr" ifTrue:[offset := offset >> shiftAmt].
-					shiftType = 2"asr" ifTrue:[offset := offset  >>> shiftAmt].
-					"I refuse to countenance using ROR or RRX here. Just Say No" ]
-				"halfword stuff register offset uses no modifiers in the form we suport. See ARM DDI0406A p. A8-156"].
-
-	"all forms have the bit 23 up/down flag to account for"
-	(instr bitAnd: 1<<23) = 0
-						ifTrue:["-ve offset" ^offset negated]
-						ifFalse:["+ve offset" ^offset]	
 ]
 
 { #category : #'accessing-abstract' }
@@ -803,18 +736,6 @@ TargetAwarePOWER >> instructionIsImmediateOffsetLoadStore: instr [
 	((instr bitShift: -21) bitAnd: 3) = 2 ifFalse:[^false].
 	"bits 4:7need to be 16rB for our purpose"
 	^(instr bitAnd: 16rF0) = 16rB0
-]
-
-{ #category : #testing }
-TargetAwarePOWER >> instructionIsLDR: instr [
-"is this a LDR instruction?"
-	| foo |
-	"first test for non-NV condition code; some important instructions use it"
-	(instr bitShift: -28) = 16rF ifTrue:[^false].
-	"See ARM DDI0406A p. A8-120"
-	foo := (instr bitShift: -20) bitAnd: 16rE5.
-	^foo = 16r41 "ldr r1, [r2, #+/-imm]"
-		or:[foo = 16r61 "ldr r1, [r2, r3]"]
 ]
 
 { #category : #testing }
