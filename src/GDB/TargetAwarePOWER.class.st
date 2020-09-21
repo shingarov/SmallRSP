@@ -515,27 +515,27 @@ TargetAwarePOWER >> handleFailingFPArithmetic: instr at: pc [
 ]
 
 { #category : #'error handling' }
-TargetAwarePOWER >> handleFailingLoadStore: instr at: pc [
-	"See e.g. ARM DDI0406A pp. A8-120, 124, 128, 132, 152, 156, etc. etc"
-	| baseReg regIdx destReg srcReg offset |
-
-	"find the register used as the base of the address and the register to load into or store from"
-	baseReg := self registerStateGetters at: ((instr bitShift: -16) bitAnd: 15) + 1.
-	srcReg :=  self registerStateGetters at: (regIdx := ((instr bitShift: -12) bitAnd: 15) + 1).
-	destReg := self registerStateSetters at: regIdx.
-
-	"work out the relevant offset, whether an immediate or register value"
-	offset := self extractOffsetFromLoadStore: instr.
+TargetAwarePOWER >> handleFailingLWZ: instr at: pc [
+	| baseAddr regIdx destReg srcReg ra rt offset |
 	
-	(self instructionIsLDR: instr) ifTrue:
-		[^(ProcessorSimulationTrap
+	"peel format D1"
+	offset := instr bitAnd: 16rFFFF.
+	(offset bitAnd: 16r8000) isZero ifFalse: [ offset := offset - 16r10000 ].
+	ra := instr >> 16 bitAnd: 16r1F.
+	rt := instr >> (16+5) bitAnd: 16r1F.
+	
+	baseAddr := self gdb getRegister: 'r', ra printString.
+	
+	destReg := self registerStateSetters at: rt+1.
+self halt.
+	^(ProcessorSimulationTrap
 				pc: pc
 				nextpc: pc + 4 
-				address: (self perform: baseReg) + offset
+				address: baseAddr + offset
 				type: #read
 				accessor: destReg)
-			signal].
-	(self instructionIsSTR: instr) ifTrue:
+			signal
+"	(self instructionIsSTR: instr) ifTrue:
 		[^(ProcessorSimulationTrap
 				pc: pc
 				nextpc: pc + 4 
@@ -575,7 +575,19 @@ TargetAwarePOWER >> handleFailingLoadStore: instr at: pc [
 				type: #write
 				accessor: srcReg)
 			signal].
+"
+]
 
+{ #category : #'error handling' }
+TargetAwarePOWER >> handleFailingLoadStore: instr at: pc [
+	"Highly target-aware shit"
+	| opcd |
+	
+	opcd := instr >> 26.
+	
+	opcd = 32 "lwz" ifTrue: [^self handleFailingLWZ: instr at: pc].
+	self shouldBeImplemented "the other cases"
+	
 	self error: 'handleFailingLoadStore:at: invoked for non-load/store?'
 ]
 
@@ -1326,14 +1338,13 @@ TargetAwarePOWER >> smashRegisterAccessors [
 
 { #category : #accessing }
 TargetAwarePOWER >> sp [
-	^gdb getRegister: 'sp'
+	^self r13
 
 ]
 
 { #category : #accessing }
 TargetAwarePOWER >> sp: anUnsignedInteger [
-	gdb setRegister: 'sp' to: anUnsignedInteger.
-	^anUnsignedInteger
+	self r13: anUnsignedInteger
 ]
 
 { #category : #accessing }
