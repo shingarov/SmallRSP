@@ -1,5 +1,8 @@
 "
-I am a wrapper around the ARMulator CPU instance and emulator routines and I give access to disassembling using libopcodes. My C-part must be compiled with -DMODET, because otherwise my offsets are wrong by one field.
+I bridge between Cog and ULD by implementing the CogProcessorAlien API.
+On ARM this means replacing ARMulator with gem5.
+
+This implementation is temporary, and will soon be replaced by a proper target-agnostic one.
 "
 Class {
 	#name : #TargetAwareARM,
@@ -34,33 +37,6 @@ TargetAwareARM class >> nZoneSize [
 { #category : #'machine description' }
 TargetAwareARM class >> wordSize [
 	^4
-]
-
-{ #category : #'error handling' }
-TargetAwareARM >> XXXhandleExecutionPrimitiveFailureIn: memoryArray "<Bitmap|ByteArray>" minimumAddress: minimumAddress [ "<Integer>"
-	"Handle an execution primitive failure.  Convert out-of-range call and absolute
-	 memory read into register instructions into ProcessorSimulationTrap signals."
-	"self printRegistersOn: Transcript"
-	| pcOnEntry pc instr |
-	pc := pcOnEntry := self pc.
-	self endCondition = #InstructionPrefetchError ifTrue:
-		[pc := self pc: self priorPc].
-
-	(pc between: minimumAddress and: memoryArray byteSize - 1) ifTrue:
-		[instr := memoryArray unsignedLongAt:  pc + 1 bigEndian: false.
-
-		 (self endCondition = #InstructionPrefetchError) ifTrue:
-			[^self handleFailingBranch: instr to: pcOnEntry at: pc].
-
-		 (self instructionIsAnyLoadStore: instr) ifTrue:
-			[^self handleFailingLoadStore: instr at: pc].
-
-		 (self instructionIsAnyFPArithmetic: instr) ifTrue:
-			[^self handleFailingFPArithmetic: instr at: pc].
-
-		 ^self handleExecutionPrimitiveFailureAt: pc in: memoryArray].
-
-	^self reportPrimitiveFailure
 ]
 
 { #category : #'Cog API' }

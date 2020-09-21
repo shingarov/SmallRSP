@@ -40,7 +40,7 @@ RemoteGDBSession >> pc [
 
 { #category : #'RSP commands' }
 RemoteGDBSession >> pc: newPC [
-	^self setRegister: self processorDescription pcRegisterName to: newPC
+	^self setRegister: 'pc' to: newPC
 ]
 
 { #category : #'RSP commands' }
@@ -138,7 +138,10 @@ RemoteGDBSession >> runWithMagickCallback: magicCallbackBlock [
 
 { #category : #accessing }
 RemoteGDBSession >> setRegister: r to: x [
-	self getRegisters at: r put: x
+	| dict |
+	dict := self getRegisters.
+	(dict includesKey: r) ifFalse: [self error].
+	dict at: r put: x "destructively because this is the gdb's copy"
 
 ]
 
