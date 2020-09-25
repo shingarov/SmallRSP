@@ -63,6 +63,11 @@ RemoteGDBTransport >> escapeChar: c [
 	] ifFalse: [ ^String with: c ]
 ]
 
+{ #category : #'target connection' }
+RemoteGDBTransport >> isAlive [
+	^self socket isConnected 
+]
+
 { #category : #private }
 RemoteGDBTransport >> readAndVerifyCksum: anInteger [
 	"Read next two characters from the TCP stream and verify that they represent the same hext number as anInteger."
