@@ -108,7 +108,7 @@ TargetAware >> handleExecutionPrimitiveFailureAt: pc "<Integer>" in: memoryArray
 ]
 
 { #category : #execution }
-TargetAware >> handleExecutionPrimitiveFailureIn: memoryArray minimumAddress: minimumAddress [
+TargetAware >> handleExecutionPrimitiveFailureIn: memory minimumAddress: minimumAddress [
 	"Execution stopped due to SIGSEGV.
 	Convert out-of-range call and absolute memory read-into-register instructions
 	into ProcessorSimulationTrap signals."
@@ -119,8 +119,8 @@ TargetAware >> handleExecutionPrimitiveFailureIn: memoryArray minimumAddress: mi
 	real hardware such as silicon i386 doesn't provide an easy way;
 	therefore, we have to look at circumstancial evidence."
 	(self isWithinMappedRange: self pc)
-		ifTrue: [ ^self handleDataFailureIn: memoryArray ]
-		ifFalse: [ ^self handlePcOutOfRangeIn: memoryArray ]
+		ifTrue: [ ^self handleDataFailureIn: memory ]
+		ifFalse: [ ^self handlePcOutOfRangeIn: memory ]
 ]
 
 { #category : #'error handling' }
@@ -155,13 +155,13 @@ TargetAware >> pdl [
 ]
 
 { #category : #execution }
-TargetAware >> runInMemory: aMemory minimumAddress: minimumAddress [
+TargetAware >> runInMemory: aMemory minimumAddress: mmm [
 	| stopReason |
 	stopReason := gdb c.
 	stopReason signal = #SIGSEGV ifTrue: [
 		^self
 			handleExecutionPrimitiveFailureIn: aMemory
-			minimumAddress: minimumAddress ].
+			minimumAddress: #zzzz ].
 	stopReason signal = #SIGQUIT ifTrue: [ ^self halt ].
 
 	"There can be a number of other reasons to stop.
@@ -171,7 +171,7 @@ TargetAware >> runInMemory: aMemory minimumAddress: minimumAddress [
 
 { #category : #execution }
 TargetAware >> runInMemory: aMemory minimumAddress: minimumAddress readOnlyBelow: minimumWritableAddress [
-	^self runInMemory: aMemory minimumAddress: minimumAddress
+	^self runInMemory: aMemory minimumAddress: #zzzz
 ]
 
 { #category : #'target connection' }

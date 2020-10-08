@@ -245,7 +245,7 @@ TargetAwarePOWER >> handleBasicDoubleArithmetic: instr at: pc [
 
 { #category : #'error handling' }
 TargetAwarePOWER >> handleDataFailureIn: aMemory [ 
-	^self handleFailingLoadStore: aMemory currentInstructionEncoding at: self gdb pc
+	^self handleFailingLoadStore: aMemory currentInstruction at: self gdb pc
 ]
 
 { #category : #'error handling' }
@@ -363,15 +363,14 @@ TargetAwarePOWER >> handleFailingLWZ: instr at: pc [
 	| baseAddr regIdx destReg srcReg ra rt offset |
 	
 	"peel format D1"
-	offset := instr bitAnd: 16rFFFF.
-	(offset bitAnd: 16r8000) isZero ifFalse: [ offset := offset - 16r10000 ].
-	ra := instr >> 16 bitAnd: 16r1F.
-	rt := instr >> (16+5) bitAnd: 16r1F.
+	offset := instr fieldValue: 'd'.
+	ra := instr fieldValue: 'ra'.
+	rt := instr fieldValue: 'rt'.
 	
 	baseAddr := self gdb getRegister: 'r', ra printString.
 	
 	destReg := self registerStateSetters at: rt+1.
-self halt.
+
 	^(ProcessorSimulationTrap
 				pc: pc
 				nextpc: pc + 4 
@@ -424,15 +423,15 @@ self halt.
 
 { #category : #'error handling' }
 TargetAwarePOWER >> handleFailingLoadStore: instr at: pc [
-	"Highly target-aware shit"
-	| opcd |
-	
-	opcd := instr >> 26.
-	
-	opcd = 32 "lwz" ifTrue: [^self handleFailingLWZ: instr at: pc].
-	self shouldBeImplemented "the other cases"
+	instr name = 'lwz' ifTrue: [^self handleFailingLWZ: instr at: pc].
+	instr name = 'stw' ifTrue: [^self handleFailingSTW: instr at: pc].
 	
 	self error: 'handleFailingLoadStore:at: invoked for non-load/store?'
+]
+
+{ #category : #'as yet unclassified' }
+TargetAwarePOWER >> handleFailingSTW: aGroundPOWERInstruction at: anInteger [ 
+	self shouldBeImplemented.
 ]
 
 { #category : #'floating-point emulation' }
