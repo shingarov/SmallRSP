@@ -430,8 +430,21 @@ TargetAwarePOWER >> handleFailingLoadStore: instr at: pc [
 ]
 
 { #category : #'as yet unclassified' }
-TargetAwarePOWER >> handleFailingSTW: aGroundPOWERInstruction at: anInteger [ 
-	self shouldBeImplemented.
+TargetAwarePOWER >> handleFailingSTW: instr at: pc [ 
+	| srcReg baseReg offset baseAddr ea |
+	srcReg := instr fieldValue: 'rs'.
+	baseReg := instr fieldValue: 'ra'.
+	offset := instr fieldValue: 'd'.
+	baseAddr := gdb getRegister: 'r', baseReg printString.
+	ea := baseAddr + offset.
+	
+	^(ProcessorSimulationTrap
+				pc: pc
+				nextpc: pc + 4 
+				address: ea
+				type: #write
+				accessor: (self registerStateGetters at: srcReg+1))
+			signal
 ]
 
 { #category : #'floating-point emulation' }
@@ -719,14 +732,12 @@ TargetAwarePOWER >> leafRetpcIn: aMemory [
 
 { #category : #accessing }
 TargetAwarePOWER >> lr [
-	^gdb getRegister: 'lr'
-
+	^self r14
 ]
 
 { #category : #accessing }
-TargetAwarePOWER >> lr: anUnsignedInteger [
-	gdb setRegister: 'lr' to: anUnsignedInteger.
-	^anUnsignedInteger
+TargetAwarePOWER >> lr: x [
+	^self r14: x
 ]
 
 { #category : #accessing }
@@ -778,10 +789,11 @@ TargetAwarePOWER >> postCallArgumentsNumArgs: numArgs "<Integer>" in: memory [ "
 	 ABI call. For ARM the Procedure Calling Specification can be found in IHI0042D_aapcs.pdf.
 	On ARM this typically means accessing r0 through r3 and fetching additional arguments from the stack, acording to pages 20f. aapcs.
 	We assume that all arguments are single word arguments, which can not be supplied on co-processor-registers.
-	 For compatibility with Cog/Slang we answer unsigned values."
+	 For compatibility with Cog/Slang we answer unsigned values.
+	On POWER we use r1,r2,... because r0 is too tricky"
 	^(1 to: numArgs) collect: [:i |
 		i < 5 
-			ifTrue: [self perform: (self registerStateGetters at: i)]
+			ifTrue: [self perform: (self registerStateGetters at: i+1)]
 			"ARM uses a full descending stack. Directly after calling a procedure, nothing but the arguments are pushed."
 			ifFalse: [memory unsignedLongAt: self sp + (i-5)*4 bigEndian: false]].
 ]
@@ -1186,8 +1198,8 @@ TargetAwarePOWER >> sp [
 ]
 
 { #category : #accessing }
-TargetAwarePOWER >> sp: anUnsignedInteger [
-	self r13: anUnsignedInteger
+TargetAwarePOWER >> sp: x [
+	^self r13: x
 ]
 
 { #category : #accessing }
