@@ -83,11 +83,6 @@ TargetAwareARM >> controlRegisterGetters [
 ]
 
 { #category : #disassembly }
-TargetAwareARM >> decorateDisassembly: anInstructionString for: aSymbolManager fromAddress: address [
-	self shouldBeImplemented 
-]
-
-{ #category : #disassembly }
 TargetAwareARM >> disassembleFrom: startAddress to: endAddress in: memory for: aSymbolManager "<Cogit>" labels: labelDictionary on: aStream [
 	| address |
 	address := startAddress.
@@ -824,15 +819,6 @@ TargetAwareARM >> postCallArgumentsNumArgs: numArgs "<Integer>" in: memory [ "<B
 			ifTrue: [self perform: (self registerStateGetters at: i)]
 			"ARM uses a full descending stack. Directly after calling a procedure, nothing but the arguments are pushed."
 			ifFalse: [memory unsignedLongAt: self sp + (i-5)*4 bigEndian: false]].
-]
-
-{ #category : #primitives }
-TargetAwareARM >> primitiveDisassembleAt: address inMemory: memory [
-	| prefix theseBytes |
-	prefix := ByteArray new: address.
-	theseBytes := (address to: address + 16) collect: [ :addr | memory byteAtAddr: addr ].
-	^GdbARMAlien new
-		primitiveDisassembleAt: address inMemory: prefix, theseBytes
 ]
 
 { #category : #primitives }

@@ -96,6 +96,15 @@ TargetAware >> debuggerClass [
 	^RemoteGDBSession
 ]
 
+{ #category : #disassembly }
+TargetAware >> decorateDisassembly: anInstructionString for: aSymbolManager fromAddress: address [
+	| s |
+	s := WriteStream on: String new.
+	address printOn: s base: 16 length: 8 padded: true.
+	s nextPutAll: ': '; nextPutAll: anInstructionString.
+	^s contents
+]
+
 { #category : #'target connection' }
 TargetAware >> gdb [
 	^gdb
@@ -152,6 +161,20 @@ TargetAware >> isWithinMappedRange: anAddress [
 { #category : #'target connection' }
 TargetAware >> pdl [
 	^gdb processorDescription 
+]
+
+{ #category : #primitives }
+TargetAware >> primitiveDisassembleAt: address inMemory: memory [
+	| encoding disasm |
+	encoding := memory unsignedLongAtAddr: address bigEndian: false.
+	disasm := self pdl disassemble: encoding.
+	true ifTrue: [ 
+		| hex s |
+		s := WriteStream on: String new.
+		hex := encoding printOn: s base: 16 length: 8 padded: true.
+		s space.
+		disasm := s contents, disasm ].
+	^{ 4. disasm. }
 ]
 
 { #category : #execution }
