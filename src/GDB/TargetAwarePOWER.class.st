@@ -5,9 +5,6 @@ Class {
 	#name : #TargetAwarePOWER,
 	#superclass : #TargetAware,
 	#classVars : [
-		'LongConstReg',
-		'LongConstStep',
-		'LongConstValue',
 		'PostBuildStackDelta'
 	],
 	#category : #'GDB-Cog'

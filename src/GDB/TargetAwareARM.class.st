@@ -8,9 +8,6 @@ Class {
 	#name : #TargetAwareARM,
 	#superclass : #TargetAware,
 	#classVars : [
-		'LongConstReg',
-		'LongConstStep',
-		'LongConstValue',
 		'PostBuildStackDelta'
 	],
 	#category : #'GDB-Cog'
