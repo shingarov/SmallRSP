@@ -280,7 +280,7 @@ RemoteGDB >> recognizedStopCodes [
 	)
 ]
 
-{ #category : #'register cache' }
+{ #category : #registers }
 RemoteGDB >> resetRegisterCache [
 	registerCache isNil ifFalse: [self sendRegistersToRSP].
 	registerCache := nil
@@ -310,7 +310,7 @@ RemoteGDB >> sendRegistersToRSP [
 	answer = 'OK' ifFalse: [self error: answer]
 ]
 
-{ #category : #'register cache' }
+{ #category : #registers }
 RemoteGDB >> setRegisters: aDict [
 	self shouldBeImplemented
 ]
