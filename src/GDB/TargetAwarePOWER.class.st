@@ -93,24 +93,7 @@ TargetAwarePOWER >> disassembleFrom: startAddress to: endAddress in: memory for:
 				[string := nil.
 				 size := label third]].
 		string ifNotNil:
-			[aStream nextPutAll: (self decorateDisassembly: string for: aSymbolManager fromAddress: address).
-			 (string includesSubstring: ': ldr	') ifTrue:"i.e. colon space 'ldr' tab" 
-				[(index := string indexOfSubCollection: ' [pc, #' startingAt: 1) > 0
-					ifTrue:
-						[offset := Integer readFrom: (ReadStream on: string from: index + 7 to: (string indexOf: $] startingAt: index + 7) - 1)]
-					ifFalse:
-						[(string indexOfSubCollection: ' [pc]' startingAt: 1) > 0 ifTrue:
-							[offset := 0]].
-				 offset ifNotNil:
-					[offset := address + 8 + offset.
-					 labelDictionary
-						at: offset
-						ifPresent:
-							[:entry|
-							entry isString
-								ifTrue: [labelDictionary at: offset put: {#literal. offset. 4. entry}]
-								ifFalse: [self assert: (entry isArray and: [entry first == #literal])]]
-						ifAbsentPut: [{#literal. offset. 4}]]]].
+			[aStream nextPutAll: (self decorateDisassembly: string for: aSymbolManager fromAddress: address)].
 		aStream cr; flush.
 		address := address + size]
 			valueWithArguments: (self
@@ -426,7 +409,7 @@ TargetAwarePOWER >> handleFailingLoadStore: instr at: pc [
 	self error: 'handleFailingLoadStore:at: invoked for non-load/store?'
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'error handling' }
 TargetAwarePOWER >> handleFailingSTW: instr at: pc [ 
 	| srcReg baseReg offset baseAddr ea |
 	srcReg := instr fieldValue: 'rs'.
@@ -793,15 +776,6 @@ TargetAwarePOWER >> postCallArgumentsNumArgs: numArgs "<Integer>" in: memory [ "
 			ifTrue: [self perform: (self registerStateGetters at: i+1)]
 			"ARM uses a full descending stack. Directly after calling a procedure, nothing but the arguments are pushed."
 			ifFalse: [memory unsignedLongAt: self sp + (i-5)*4 bigEndian: false]].
-]
-
-{ #category : #primitives }
-TargetAwarePOWER >> primitiveDisassembleAt: address inMemory: memory [
-	| prefix theseBytes |
-	prefix := ByteArray new: address.
-	theseBytes := (address to: address + 16) collect: [ :addr | memory byteAtAddr: addr ].
-	^GdbARMAlien new
-		primitiveDisassembleAt: address inMemory: prefix, theseBytes
 ]
 
 { #category : #primitives }
