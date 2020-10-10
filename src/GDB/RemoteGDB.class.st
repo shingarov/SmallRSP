@@ -141,7 +141,7 @@ RemoteGDB >> decodeGPacket: aStream [
 
 ]
 
-{ #category : #'register cache' }
+{ #category : #registers }
 RemoteGDB >> getRegisters [
 	registerCache isNil ifTrue: [ registerCache := self getRegistersFromRSP ].
 	^registerCache
@@ -158,12 +158,14 @@ RemoteGDB >> getRegistersFromRSP [
 	^self decodeGPacket: stream
 ]
 
-{ #category : #private }
-RemoteGDB >> gtInspectorPreviewIn: composite [
+{ #category : #registers }
+RemoteGDB >> gtInspectorItemsIn: composite [
 	<gtInspectorPresentationOrder: 20>
-	composite morph
+	^composite fastTable
 		title: 'Registers';
-		morph: [ GdbRegistersMorph on: self ]
+		display: [ self getRegisters associations ];
+		column: 'Register' evaluated: [ :each | each key ];
+		column: 'Hex' evaluated: [ :each | each value printStringHex ]
 ]
 
 { #category : #'stop codes' }
