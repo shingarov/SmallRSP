@@ -158,6 +158,14 @@ TargetAware >> isWithinMappedRange: anAddress [
 	^anAddress >= minimumAddress and: [ anAddress <= maximumAddress ]
 ]
 
+{ #category : #'pc map' }
+TargetAware >> noteCogInstruction: aCogInstruction emittedAt: a [
+	self pcMap isNil ifTrue: [ ^self ].
+	pcMap at: a put: aCogInstruction generatorChain. "can't put in the RTL itself, these mutate"
+	aCogInstruction maybeInsertHWBreakpoint: a
+	
+]
+
 { #category : #'target connection' }
 TargetAware >> pdl [
 	^gdb processorDescription 
