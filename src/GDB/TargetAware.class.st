@@ -2,7 +2,8 @@ Class {
 	#name : #TargetAware,
 	#superclass : #Object,
 	#instVars : [
-		'gdb'
+		'gdb',
+		'pcMap'
 	],
 	#classVars : [
 		'Current'
@@ -145,9 +146,28 @@ TargetAware >> handlePcOutOfRangeIn: memoryArray [
 		signal
 ]
 
+{ #category : #'error handling' }
+TargetAware >> handleTrapIn: aMemory [
+	| pc rtl |
+	pc := gdb pc.
+	
+	"Is this in JITed code that we know of?"
+	rtl := pcMap at: pc.
+	rtl isNil ifFalse: [^JITCodeTrap signalFor: self]	.
+
+	"Generic trap"
+	self halt: 'SIGTRAP at ', pc hex.
+
+]
+
 { #category : #'target connection' }
 TargetAware >> hostIP [
 	^'192.168.75.2'
+]
+
+{ #category : #'pc map' }
+TargetAware >> initEmptyPcMap [
+	pcMap := Dictionary new
 ]
 
 { #category : #execution }
@@ -164,6 +184,12 @@ TargetAware >> noteCogInstruction: aCogInstruction emittedAt: a [
 	pcMap at: a put: aCogInstruction generatorChain. "can't put in the RTL itself, these mutate"
 	aCogInstruction maybeInsertHWBreakpoint: a
 	
+]
+
+{ #category : #'pc map' }
+TargetAware >> pcMap [
+	pcMap isNil ifTrue: [ self initEmptyPcMap ].
+	^pcMap
 ]
 
 { #category : #'target connection' }
@@ -195,8 +221,10 @@ TargetAware >> runInMemory: aMemory minimumAddress: mmm [
 			minimumAddress: #zzzz ].
 	stopReason signal = #SIGQUIT ifTrue: [ ^self halt ].
 
-	"There can be a number of other reasons to stop.
-	For example, a debug breakpoint."
+	"Single-step, or breakpoint"
+	stopReason signal = #SIGTRAP ifTrue: [ ^self handleTrapIn: aMemory ].
+	
+	"There can be a number of other reasons to stop."
 	self shouldBeImplemented
 ]
 
