@@ -77,6 +77,7 @@ TargetAware >> connectGdb [
 		host: self hostIP
 		port: self tcpPort.
 	self runThinshellPrologue.
+	self insertPredefinedBreakpoints.
 	^self "not gdb; #new needs the instance"
 ]
 
@@ -118,7 +119,7 @@ TargetAware >> handleExecutionPrimitiveFailureAt: pc "<Integer>" in: memoryArray
 ]
 
 { #category : #execution }
-TargetAware >> handleExecutionPrimitiveFailureIn: memory minimumAddress: minimumAddress [
+TargetAware >> handleExecutionPrimitiveFailureIn: memory [
 	"Execution stopped due to SIGSEGV.
 	Convert out-of-range call and absolute memory read-into-register instructions
 	into ProcessorSimulationTrap signals."
@@ -135,11 +136,7 @@ TargetAware >> handleExecutionPrimitiveFailureIn: memory minimumAddress: minimum
 
 { #category : #'error handling' }
 TargetAware >> handleJITCodeTrapIn: aMemory [
-	gdb s.
 	^JITCodeTrap signalFor: self
-	
-
-	"pcMap at: gdb pc."
 ]
 
 { #category : #'error handling' }
@@ -177,6 +174,11 @@ TargetAware >> hostIP [
 { #category : #'pc map' }
 TargetAware >> initEmptyPcMap [
 	pcMap := Dictionary new
+]
+
+{ #category : #'target connection' }
+TargetAware >> insertPredefinedBreakpoints [
+	self gdb insertHWBreakpointAt: 16r22e74
 ]
 
 { #category : #execution }
@@ -221,25 +223,17 @@ TargetAware >> primitiveDisassembleAt: address inMemory: memory [
 ]
 
 { #category : #execution }
-TargetAware >> runInMemory: aMemory minimumAddress: mmm [
+TargetAware >> runInMemory: aMemory [
 	| stopReason |
 	stopReason := gdb c.
-	stopReason signal = #SIGSEGV ifTrue: [
-		^self
-			handleExecutionPrimitiveFailureIn: aMemory
-			minimumAddress: #zzzz ].
-	stopReason signal = #SIGQUIT ifTrue: [ ^self halt ].
+	stopReason signal = #SIGSEGV ifTrue: [^self handleExecutionPrimitiveFailureIn: aMemory].
+	stopReason signal = #SIGQUIT ifTrue: [ ^GdbChildExited signal ].
 
 	"Single-step, or breakpoint"
 	stopReason signal = #SIGTRAP ifTrue: [ ^self handleTrapIn: aMemory ].
 	
 	"There can be a number of other reasons to stop."
 	self shouldBeImplemented
-]
-
-{ #category : #execution }
-TargetAware >> runInMemory: aMemory minimumAddress: minimumAddress readOnlyBelow: minimumWritableAddress [
-	^self runInMemory: aMemory minimumAddress: #zzzz
 ]
 
 { #category : #'target connection' }

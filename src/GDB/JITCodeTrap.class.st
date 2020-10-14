@@ -20,6 +20,14 @@ JITCodeTrap class >> signalFor: processor [
 ]
 
 { #category : #accessing }
+JITCodeTrap >> description [
+	"Return a textual description of the exception."
+	| trapPC |
+	trapPC := self processor gdb pc.
+	^'SIGTRAP: ', trapPC printStringHex
+]
+
+{ #category : #accessing }
 JITCodeTrap >> processor [
 	^ processor
 ]

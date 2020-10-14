@@ -719,7 +719,7 @@ TargetAwareX86 >> simulateLeafCallOf: someFunction for: aCogit [
 	aCogit singleStep
 			ifTrue: [ self shouldBeImplemented ].
 	[true] whileTrue: [ 
-		[ self runInMemory: aCogit objectMemory memory minimumAddress: 4096 ]
+		[ self runInMemory: aCogit objectMemory ]
 			on: SimulatedLeafReturn
 			do: [ ^self cResultRegister ] ]
 ]
@@ -748,16 +748,6 @@ TargetAwareX86 >> simulateTearFrameIn: aMemory [
 	PostBuildStackDelta ~= 0 ifTrue:
 		[self esp: self esp + PostBuildStackDelta].
 	self esp: (self popWordIn: aMemory).
-]
-
-{ #category : #execution }
-TargetAwareX86 >> singleStepIn: aMemory minimumAddress: minimumAddress readOnlyBelow: minimumWritableAddress [
-	| stopReason |
-	stopReason := gdb s.
-	stopReason signal = #SIGTRAP ifTrue: [ ^self "no fault" ].
-	^self
-		handleExecutionPrimitiveFailureIn: aMemory
-		minimumAddress: minimumAddress
 ]
 
 { #category : #execution }

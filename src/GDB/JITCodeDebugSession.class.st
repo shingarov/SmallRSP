@@ -5,9 +5,6 @@ I interpret low-level information such as register values and absolute addresses
 Class {
 	#name : #JITCodeDebugSession,
 	#superclass : #DebugSession,
-	#instVars : [
-		'generatorChain'
-	],
 	#category : #'GDB-Cog'
 }
 
@@ -22,9 +19,14 @@ JITCodeDebugSession >> addressesAndInstructions [
 ]
 
 { #category : #'as yet unclassified' }
+JITCodeDebugSession >> gdb [
+	^self processor gdb
+]
+
+{ #category : #'as yet unclassified' }
 JITCodeDebugSession >> generatorChain [
-	generatorChain isNil ifTrue: [ generatorChain := self processor pcMap at: self pc ].
-	^generatorChain 
+	"NB: DO NOT CACHE"
+	^self processor pcMap at: self pc
 ]
 
 { #category : #'as yet unclassified' }

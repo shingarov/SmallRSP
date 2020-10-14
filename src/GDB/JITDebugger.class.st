@@ -45,31 +45,63 @@ JITDebugger class >> sessionClass [
 	^JITCodeDebugSession
 ]
 
+{ #category : #'building presentations' }
+JITDebugger >> chainIn: aComposite forContext: aContext [
+
+	(self chainWidgetIn: aComposite forContext: aContext)
+		initialize: [ :chainPresentation |
+				chainPresentation selection: self session generatorChain interestingContext ];
+		with: [ :g | self "installActionsForRootPragmas: self disassemblyActionsPragmas in: disassembly" ].
+]
+
+{ #category : #'building presentations' }
+JITDebugger >> chainWidgetIn: aComposite forContext: aContext [
+	^aComposite fastList
+		title: 'Nativizer postmortem';
+		display: [ self session generatorChain stack collect: #key ]
+]
+
+{ #category : #'target actions' }
+JITDebugger >> cont [ 
+	self session gdb shouldBeImplemented 
+]
+
 { #category : #building }
 JITDebugger >> debuggerStructureIn: browser [
 	browser
-		row: #stack;
-		row: [ :c | c
-			column: #code; 
-			column: #disassembly ] span: 2;
-		row: #inspector.
-
+		column: [ :r | r
+				row: #chain;
+				row: #gen;
+				row: #inspector ];
+		column: [ :r | r
+				row: #disassembly;
+				row: #registers ]
 ]
 
 { #category : #building }
 JITDebugger >> debuggerTransmissionsIn: browser [
-
-	super debuggerTransmissionsIn: browser.
 	browser transmit
-		from: #stack port: #selection;
+		fromOutsideEntityPort;
+		to: #chain;
+		andShow: [ :composite :aContext | self chainIn: composite forContext: aContext ].
+	browser transmit
+		fromOutsideEntityPort;
 		to: #disassembly;
-		andShow: [ :composite :aContext | self disassemblyIn: composite forContext: aContext ]
+		andShow: [ :composite :aContext | self disassemblyIn: composite forContext: aContext ].
+	browser transmit
+		fromOutsideEntityPort;
+		to: #registers;
+		andShow: [ :composite :aContext | self registersIn: composite "forContext: aContext" ].
+	browser transmit
+		from: #chain port: #selection;
+		to: #inspector;
+		andShow: [ :composite :aContext | self inspectorIn: composite ].
+	browser transmit
+		from: #chain port: #selection;
+		to: #gen;
+		andShow: [ :composite :aContext | self genIn: composite forContext: aContext ].
+		
 
-]
-
-{ #category : #'building presentations' }
-JITDebugger >> disassemblyActionsPragmas [
-	#()
 ]
 
 { #category : #'building presentations' }
@@ -77,57 +109,55 @@ JITDebugger >> disassemblyIn: aComposite forContext: aContext [
 
 	(self disassemblyWidgetIn: aComposite forContext: aContext)
 		initialize: [ :disassemblyPresentation |
-				disassemblyPresentation selection: 1 "(self session x: self currentContext)" ];
-		with: [ :disassembly | self installActionsForRootPragmas: self disassemblyActionsPragmas in: disassembly ].
-]
-
-{ #category : #accessing }
-JITDebugger >> disassemblyPane [
-	^ self browser paneNamed: #disassembly
-]
-
-{ #category : #accessing }
-JITDebugger >> disassemblyPresentation [
-	^self disassemblyPane presentations first
+				disassemblyPresentation selection: (self session generatorChain instructionAtPC) ];
+		with: [ :disassembly | self "installActionsForRootPragmas: self disassemblyActionsPragmas in: disassembly" ].
 ]
 
 { #category : #'building presentations' }
 JITDebugger >> disassemblyWidgetIn: aComposite forContext: aContext [
 	^ aComposite fastList 
-		title: 'CPU Instructions';
-		display: [ self session addressesAndInstructions ];
-		format: [ :ai | "instr disassemble" 
+		title: (self session gdb processorDescription architectureName, ' instructions');
+		display: [ self session generatorChain instructions ];
+		act: [ self cont ] icon: GLMUIThemeExtraIcons glamorousGo entitled: 'cont';
+		act: [ self stepi ] icon: GLMUIThemeExtraIcons glamorousInto entitled: 'stepi';
+		act: [ self kill ] icon: GLMUIThemeExtraIcons glamorousCancel entitled: 'kill inferior'
+		
+		  ";
+		format: [ :ai | instr disassemble
 			(ai key = self session pc ifTrue: '--> ' ifFalse: ''),			
-			ai value disassemble  ]
+			ai value disassemble  ]"
 ]
 
 { #category : #'building presentations' }
-JITDebugger >> genChainIn: aComposite [
-	^aComposite fastList
-		title: 'Gen chain';
-		display: [ self session generatorChain stack collect: #key ]
+JITDebugger >> genIn: aComposite forContext: aContext [
+	(self genWidgetIn: aComposite forContext: aContext)
+		initialize: [ :code |
+				code selectionInterval: (self session selectedCodeRangeForContext: self selectedGen)
+				"self session generatorChain instructionAtPC  <- this is for the list"
+				
+				 ];
+		with: [ :g | self " installCodeActionsFor: code" ].
+		
+	
+
 ]
 
 { #category : #'building presentations' }
-JITDebugger >> generatorIn: aComposite [
+JITDebugger >> genWidgetIn: aComposite forContext: aContext [
 	| g |
-	g := self session generatorChain whatGeneratedMe.
+	g := self selectedGen.
 	^aComposite pharoMethod 
-		title: [ 'Generator' ];
-		display: [ (g method sourceNodeForPC: g pc) source ];
-		smalltalkClass: [ (g method sourceNodeForPC: g pc) parents first compilationContext ifNotNil: [ :ctx | ctx getClass ] ]; 
-		initialize: [ :presentation | presentation selectionInterval: (g method sourceNodeForPC: g pc) sourceInterval ];
-		when: [ (g method sourceNodeForPC: g pc) source notNil ];
-		act: [ (g method sourceNodeForPC: g pc) methodNode method compiledMethod browse ] icon: GLMUIThemeExtraIcons glamorousBrowse entitled: 'Browse'
+		title: [ 'Generator source' ];
+		display: [ (self selectedGen method sourceNodeForPC: g pc) source ];
+		smalltalkClass: [ (self selectedGen method sourceNodeForPC: g pc) parents first compilationContext ifNotNil: [ :ctx | ctx getClass ] ]; 
+		initialize: [ :presentation | presentation selectionInterval: (self selectedGen method sourceNodeForPC: g pc) sourceInterval ];
+		when: [ (self selectedGen method sourceNodeForPC: g pc) source notNil ]
+		
 ]
 
-{ #category : #'building presentations' }
-JITDebugger >> inspectorIn: aComposite [
-	(super inspectorIn: aComposite) title: 'Mother Smalltalk'.
-	self
-		registersIn: aComposite;
-		genChainIn: aComposite;
-		generatorIn: aComposite
+{ #category : #'target actions' }
+JITDebugger >> kill [ 
+	self session gdb kill
 ]
 
 { #category : #'building presentations' }
@@ -139,7 +169,23 @@ JITDebugger >> registersIn: aComposite [
 		column: 'Hex' evaluated: [ :each | each value printStringHex ]
 ]
 
-{ #category : #accessing }
-JITDebugger >> title [
-	^'ULD DEBUGGER!!!'
+{ #category : #'accessing context' }
+JITDebugger >> selectedGen [
+	^ ((self browser paneNamed: #chain) port: #selection) value
+]
+
+{ #category : #building }
+JITDebugger >> setDebuggerToFirstNonFilteredContext [
+	"HACK, until we figure out how not to be a subclass of StackDebugger"
+		
+
+]
+
+{ #category : #'target actions' }
+JITDebugger >> stepi [ 
+	"BOGUS.  This primitive approach will serve for now,
+	but it's missing the most interesting case when execution re-enters surgery.
+	This is where REAL fun with Smalltalk exceptions and contexts starts."
+	self session gdb s.
+	self session: self session copy
 ]
