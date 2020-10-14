@@ -134,6 +134,15 @@ TargetAware >> handleExecutionPrimitiveFailureIn: memory minimumAddress: minimum
 ]
 
 { #category : #'error handling' }
+TargetAware >> handleJITCodeTrapIn: aMemory [
+	gdb s.
+	^JITCodeTrap signalFor: self
+	
+
+	"pcMap at: gdb pc."
+]
+
+{ #category : #'error handling' }
 TargetAware >> handlePcOutOfRangeIn: memoryArray [
 	| pc |
 	pc := self pc.
@@ -153,10 +162,10 @@ TargetAware >> handleTrapIn: aMemory [
 	
 	"Is this in JITed code that we know of?"
 	rtl := pcMap at: pc.
-	rtl isNil ifFalse: [^JITCodeTrap signalFor: self]	.
+	rtl isNil ifFalse: [^self handleJITCodeTrapIn: aMemory]	.
 
 	"Generic trap"
-	self halt: 'SIGTRAP at ', pc hex.
+	self error: 'SIGTRAP at ', pc hex.
 
 ]
 
