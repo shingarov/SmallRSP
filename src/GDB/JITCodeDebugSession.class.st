@@ -35,6 +35,16 @@ JITCodeDebugSession >> pc [
 ]
 
 { #category : #'as yet unclassified' }
+JITCodeDebugSession >> printOopString: oop [
+	^self processor
+		pcMap
+			anyOne "CogGeneratorChain"
+				cogit
+					printOopString: oop
+		
+]
+
+{ #category : #'as yet unclassified' }
 JITCodeDebugSession >> processor [
 	^self interruptedContext receiver 
 ]

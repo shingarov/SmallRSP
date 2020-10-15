@@ -109,8 +109,7 @@ JITDebugger >> disassemblyIn: aComposite forContext: aContext [
 
 	(self disassemblyWidgetIn: aComposite forContext: aContext)
 		initialize: [ :disassemblyPresentation |
-				disassemblyPresentation selection: (self session generatorChain instructionAtPC) ];
-		with: [ :disassembly | self "installActionsForRootPragmas: self disassemblyActionsPragmas in: disassembly" ].
+				disassemblyPresentation selection: (self session generatorChain instructionAtPC) ]
 ]
 
 { #category : #'building presentations' }
@@ -160,13 +159,23 @@ JITDebugger >> kill [
 	self session gdb kill
 ]
 
+{ #category : #'target actions' }
+JITDebugger >> printOopInRegister [
+	| name2value oop |
+	name2value := (self browser paneNamed: #registers) presentations first selection.
+	oop := name2value value.
+	UIManager default edit: (self session printOopString: oop) label: oop hex
+	 
+]
+
 { #category : #'building presentations' }
 JITDebugger >> registersIn: aComposite [
 	^aComposite fastTable
 		title: 'Registers';
 		display: [ self session registers associations ];
 		column: 'Register' evaluated: [ :each | each key ];
-		column: 'Hex' evaluated: [ :each | each value printStringHex ]
+		column: 'Hex' evaluated: [ :each | each value printStringHex ];
+		act: [ self printOopInRegister ] iconName: #objects entitled: 'print oop'
 ]
 
 { #category : #'accessing context' }
