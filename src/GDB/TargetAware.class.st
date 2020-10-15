@@ -178,7 +178,7 @@ TargetAware >> initEmptyPcMap [
 
 { #category : #'target connection' }
 TargetAware >> insertPredefinedBreakpoints [
-	self gdb insertHWBreakpointAt: 16r22e74
+	self predefinedBreakpoints do: [ :bkptAddress | self gdb insertHWBreakpointAt: bkptAddress ]
 ]
 
 { #category : #execution }
@@ -206,6 +206,11 @@ TargetAware >> pcMap [
 { #category : #'target connection' }
 TargetAware >> pdl [
 	^gdb processorDescription 
+]
+
+{ #category : #'target connection' }
+TargetAware >> predefinedBreakpoints [
+	^#()
 ]
 
 { #category : #primitives }
