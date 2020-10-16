@@ -260,3 +260,8 @@ TargetAware >> smashRegistersWithValuesFrom: base by: step [
 TargetAware >> tcpPort [
 	^7000
 ]
+
+{ #category : #'as yet unclassified' }
+TargetAware >> unknownFakeAddress: aProcessorSimulationTrap [ 
+	^self handleJITCodeTrap
+]
