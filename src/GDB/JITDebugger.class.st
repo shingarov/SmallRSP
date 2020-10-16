@@ -45,6 +45,11 @@ JITDebugger class >> sessionClass [
 	^JITCodeDebugSession
 ]
 
+{ #category : #'as yet unclassified' }
+JITDebugger >> browseSelectedFrame [
+	self selectedDeadContext method browse
+]
+
 { #category : #'building presentations' }
 JITDebugger >> chainIn: aComposite forContext: aContext [
 
@@ -58,7 +63,9 @@ JITDebugger >> chainIn: aComposite forContext: aContext [
 JITDebugger >> chainWidgetIn: aComposite forContext: aContext [
 	^aComposite fastList
 		title: 'Nativizer postmortem';
-		display: [ self session generatorChain stack collect: #key ]
+		display: [ self session generatorChain stack collect: #key ];
+		act: [ self browseSelectedFrame ] icon: GLMUIThemeExtraIcons glamorousBrowse entitled: 'browse full'.
+
 ]
 
 { #category : #'target actions' }
