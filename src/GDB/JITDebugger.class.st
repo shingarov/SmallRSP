@@ -131,7 +131,7 @@ JITDebugger >> disassemblyWidgetIn: aComposite forContext: aContext [
 JITDebugger >> genIn: aComposite forContext: aContext [
 	(self genWidgetIn: aComposite forContext: aContext)
 		initialize: [ :code |
-				code selectionInterval: (self session selectedCodeRangeForContext: self selectedGen)
+				code selectionInterval: (self session selectedCodeRangeForContext: self selectedDeadContext)
 				"self session generatorChain instructionAtPC  <- this is for the list"
 				
 				 ];
@@ -144,13 +144,13 @@ JITDebugger >> genIn: aComposite forContext: aContext [
 { #category : #'building presentations' }
 JITDebugger >> genWidgetIn: aComposite forContext: aContext [
 	| g |
-	g := self selectedGen.
+	g := self selectedDeadContext.
 	^aComposite pharoMethod 
 		title: [ 'Source' ];
-		display: [ (self selectedGen method sourceNodeForPC: g pc) source ];
-		smalltalkClass: [ (self selectedGen method sourceNodeForPC: g pc) parents first compilationContext ifNotNil: [ :ctx | ctx getClass ] ]; 
-		initialize: [ :presentation | presentation selectionInterval: (self selectedGen method sourceNodeForPC: g pc) sourceInterval ];
-		when: [ (self selectedGen method sourceNodeForPC: g pc) source notNil ]
+		display: [ (self selectedDeadContext method sourceNodeForPC: g pc) source ];
+		smalltalkClass: [ (self selectedDeadContext method sourceNodeForPC: g pc) parents first compilationContext ifNotNil: [ :ctx | ctx getClass ] ]; 
+		initialize: [ :presentation | presentation selectionInterval: (self selectedDeadContext method sourceNodeForPC: g pc) sourceInterval ];
+		when: [ (self selectedDeadContext method sourceNodeForPC: g pc) source notNil ]
 		
 ]
 
@@ -179,7 +179,7 @@ JITDebugger >> registersIn: aComposite [
 ]
 
 { #category : #'accessing context' }
-JITDebugger >> selectedGen [
+JITDebugger >> selectedDeadContext [
 	^ ((self browser paneNamed: #chain) port: #selection) value
 ]
 
