@@ -210,7 +210,7 @@ TargetAware >> pdl [
 
 { #category : #'target connection' }
 TargetAware >> predefinedBreakpoints [
-	^#()
+	^InterestingBreakpointAddresses predefinedBreakpoints
 ]
 
 { #category : #primitives }

@@ -778,11 +778,6 @@ TargetAwarePOWER >> postCallArgumentsNumArgs: numArgs "<Integer>" in: memory [ "
 			ifFalse: [memory unsignedLongAt: self sp + (i-5)*4 bigEndian: false]].
 ]
 
-{ #category : #'target connection' }
-TargetAwarePOWER >> predefinedBreakpoints [
-	^#(16r22e74)
-]
-
 { #category : #primitives }
 TargetAwarePOWER >> primitiveErrorAndLog [
 	"Answer an array of the current error code and log contents"

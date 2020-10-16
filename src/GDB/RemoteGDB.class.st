@@ -141,13 +141,6 @@ RemoteGDB >> decodeGPacket: aStream [
 
 ]
 
-{ #category : #'general query commands' }
-RemoteGDB >> dontBreakAtAnyOfThese [
-^#(
-16r21d84
-)
-]
-
 { #category : #registers }
 RemoteGDB >> getRegisters [
 	registerCache isNil ifTrue: [ registerCache := self getRegistersFromRSP ].
@@ -185,8 +178,7 @@ RemoteGDB >> inferiorExited: fullAnswer [
 { #category : #'general query commands' }
 RemoteGDB >> insertHWBreakpointAt: addr [
 	| answer |
-(self dontBreakAtAnyOfThese includes: addr) ifTrue: [ ^self ].
-
+	(InterestingBreakpointAddresses dontBreakAtAnyOfThese includes: addr) ifTrue: [ ^self ].
 	answer := self q: 'Z1,',
 		addr printStringHex,
 		',',
