@@ -946,8 +946,10 @@ TargetAwarePOWER >> registerState [
 
 { #category : #'accessing-abstract' }
 TargetAwarePOWER >> registerStateGetters [
-	^#(	r0 r1 r2 r3 r4 r5 r6 r7 r8 r9 sl fp r12 sp lr pc eflags
-		d0 d1 d2 d3 d4 d5 d6 d7 d8 d9 d10 d11 d12 d13 d14 d15)
+^#(
+r0  r1  r2  r3  r4  r5  r6  r7  r8  r9  r10 r11 r12 r13 r14 r15
+r16 r17 r18 r19 r20 r21 r22 r23 r24 r25 r26 r27 r28 r29 r30 r31
+)
 ]
 
 { #category : #'accessing-abstract' }
