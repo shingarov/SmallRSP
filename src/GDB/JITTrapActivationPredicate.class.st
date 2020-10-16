@@ -9,5 +9,5 @@ Class {
 
 { #category : #testing }
 JITTrapActivationPredicate >> matchContext: aContext [
-	^aContext method selector = #handleJITCodeTrapIn:
+	^aContext method selector = #handleJITCodeTrap
 ]

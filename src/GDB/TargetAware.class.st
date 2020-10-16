@@ -135,7 +135,7 @@ TargetAware >> handleExecutionPrimitiveFailureIn: memory [
 ]
 
 { #category : #'error handling' }
-TargetAware >> handleJITCodeTrapIn: aMemory [
+TargetAware >> handleJITCodeTrap [
 	^JITCodeTrap signalFor: self
 ]
 
@@ -159,7 +159,7 @@ TargetAware >> handleTrapIn: aMemory [
 	
 	"Is this in JITed code that we know of?"
 	rtl := pcMap at: pc.
-	rtl isNil ifFalse: [^self handleJITCodeTrapIn: aMemory]	.
+	rtl isNil ifFalse: [^self handleJITCodeTrap]	.
 
 	"Generic trap"
 	self error: 'SIGTRAP at ', pc hex.
