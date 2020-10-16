@@ -146,7 +146,7 @@ JITDebugger >> genWidgetIn: aComposite forContext: aContext [
 	| g |
 	g := self selectedGen.
 	^aComposite pharoMethod 
-		title: [ 'Generator source' ];
+		title: [ 'Source' ];
 		display: [ (self selectedGen method sourceNodeForPC: g pc) source ];
 		smalltalkClass: [ (self selectedGen method sourceNodeForPC: g pc) parents first compilationContext ifNotNil: [ :ctx | ctx getClass ] ]; 
 		initialize: [ :presentation | presentation selectionInterval: (self selectedGen method sourceNodeForPC: g pc) sourceInterval ];
