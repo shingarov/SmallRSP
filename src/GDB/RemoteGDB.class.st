@@ -319,11 +319,6 @@ RemoteGDB >> sendRegistersToRSP [
 	answer = 'OK' ifFalse: [self error: answer]
 ]
 
-{ #category : #registers }
-RemoteGDB >> setRegisters: aDict [
-	self shouldBeImplemented
-]
-
 { #category : #'RSP commands' }
 RemoteGDB >> setThread: c t: t [
 	" Hxyyyy family of commands (e.g. Hc-1 or Hg0). "
