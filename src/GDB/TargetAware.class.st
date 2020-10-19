@@ -156,13 +156,16 @@ TargetAware >> handlePcOutOfRangeIn: memoryArray [
 TargetAware >> handleTrapIn: aMemory [
 	| pc rtl |
 	pc := gdb pc.
-	
 	"Is this in JITed code that we know of?"
-	rtl := pcMap at: pc.
-	rtl isNil ifFalse: [^self handleJITCodeTrap]	.
+	rtl := pcMap at: pc ifAbsent: [^self handleUnknownCodeTrap].
+	rtl isNil ifTrue: [^self error: 'Strange SIGTRAP at ', pc hex]. "can't happen at all"
+	^self handleJITCodeTrap
 
-	"Generic trap"
-	self error: 'SIGTRAP at ', pc hex.
+]
+
+{ #category : #'error handling' }
+TargetAware >> handleUnknownCodeTrap [
+	self error: 'SIGTRAP in unknown code at ', gdb pc hex
 
 ]
 
@@ -191,7 +194,6 @@ TargetAware >> isWithinMappedRange: anAddress [
 
 { #category : #'pc map' }
 TargetAware >> noteCogInstruction: aCogInstruction emittedAt: a [
-	self pcMap isNil ifTrue: [ ^self ].
 	pcMap at: a put: aCogInstruction generatorChain. "can't put in the RTL itself, these mutate"
 	aCogInstruction maybeInsertHWBreakpoint: a
 	
