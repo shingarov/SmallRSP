@@ -19,6 +19,14 @@ JITCodeDebugSession >> addressesAndInstructions [
 ]
 
 { #category : #'as yet unclassified' }
+JITCodeDebugSession >> cont [
+	| gdbContContext |
+	gdbContContext := self interruptedContext findContextSuchThat: [ :c | c methodSelector = #runInMemory: ].
+	self unwindAndRestartToContext: gdbContContext.
+	self resume
+]
+
+{ #category : #'as yet unclassified' }
 JITCodeDebugSession >> gdb [
 	^self processor gdb
 ]

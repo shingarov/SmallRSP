@@ -70,7 +70,8 @@ JITDebugger >> chainWidgetIn: aComposite forContext: aContext [
 
 { #category : #'target actions' }
 JITDebugger >> cont [ 
-	self session gdb shouldBeImplemented 
+	self halt.
+	self session cont
 ]
 
 { #category : #building }
