@@ -69,9 +69,9 @@ JITDebugger >> chainWidgetIn: aComposite forContext: aContext [
 ]
 
 { #category : #'target actions' }
-JITDebugger >> cont [ 
-	self halt.
-	self session cont
+JITDebugger >> cont [
+	self session cont.
+	self close
 ]
 
 { #category : #building }

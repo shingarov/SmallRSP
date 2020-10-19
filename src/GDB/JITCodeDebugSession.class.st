@@ -23,7 +23,7 @@ JITCodeDebugSession >> cont [
 	| gdbContContext |
 	gdbContContext := self interruptedContext findContextSuchThat: [ :c | c methodSelector = #runInMemory: ].
 	self unwindAndRestartToContext: gdbContContext.
-	self resume
+	self resume; clear
 ]
 
 { #category : #'as yet unclassified' }
