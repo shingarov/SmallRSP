@@ -125,7 +125,10 @@ JITDebugger >> disassemblyWidgetIn: aComposite forContext: aContext [
 	^ aComposite fastList 
 		title: (self session gdb processorDescription architectureName, ' instructions');
 		display: [ self session generatorChain instructions ];
+		act: [ self inspectProcessor ] icon: GLMUIThemeExtraIcons glamorousInspect entitled: 'processor';
+		act: [ self inspectGdb ] icon: GLMUIThemeExtraIcons glamorousBug entitled: 'gdb';
 		act: [ self cont ] icon: GLMUIThemeExtraIcons glamorousGo entitled: 'cont';
+		act: [ self nexti ] icon: GLMUIThemeExtraIcons glamorousOver entitled: 'nexti';
 		act: [ self stepi ] icon: GLMUIThemeExtraIcons glamorousInto entitled: 'stepi';
 		act: [ self kill ] icon: GLMUIThemeExtraIcons glamorousCancel entitled: 'kill inferior'
 		
@@ -133,6 +136,12 @@ JITDebugger >> disassemblyWidgetIn: aComposite forContext: aContext [
 		format: [ :ai | instr disassemble
 			(ai key = self session pc ifTrue: '--> ' ifFalse: ''),			
 			ai value disassemble  ]"
+]
+
+{ #category : #'building presentations' }
+JITDebugger >> filterRegisterAssociations: aCollection [
+	^aCollection reject: [ :ass | ass key first = $f ]
+
 ]
 
 { #category : #'building presentations' }
@@ -162,6 +171,16 @@ JITDebugger >> genWidgetIn: aComposite forContext: aContext [
 		
 ]
 
+{ #category : #'as yet unclassified' }
+JITDebugger >> inspectGdb [
+	self session gdb inspect
+]
+
+{ #category : #'as yet unclassified' }
+JITDebugger >> inspectProcessor [
+	self session processor inspect
+]
+
 { #category : #'target actions' }
 JITDebugger >> kill [ 
 	self session gdb kill
@@ -177,12 +196,18 @@ JITDebugger >> printOopInRegister [
 ]
 
 { #category : #'building presentations' }
+JITDebugger >> registerAssociations [
+	^self filterRegisterAssociations: self session registers associations
+]
+
+{ #category : #'building presentations' }
 JITDebugger >> registersIn: aComposite [
 	^aComposite fastTable
 		title: 'Registers';
-		display: [ self session registers associations ];
+		display: [ self registerAssociations ];
 		column: 'Register' evaluated: [ :each | each key ];
 		column: 'Hex' evaluated: [ :each | each value printStringHex ];
+		sortBlock: [ :x :y | x key < y key ];
 		act: [ self printOopInRegister ] iconName: #objects entitled: 'print oop'
 ]
 

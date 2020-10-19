@@ -3,7 +3,8 @@ Class {
 	#superclass : #Object,
 	#instVars : [
 		'gdb',
-		'pcMap'
+		'pcMap',
+		'breakpoints'
 	],
 	#classVars : [
 		'Current'
@@ -66,9 +67,25 @@ TargetAware >> accessorIsFramePointerSetter: accessor [
 	^#fp: == accessor
 ]
 
+{ #category : #GT }
+TargetAware >> addBreakpoint [
+	| s pc |
+	s := UIManager default request: 'Break pc (hex)'.
+	s := s withBlanksTrimmed.
+	s isEmpty ifTrue: [^self].
+	pc := Integer readFrom: s readStream base: 16.
+	self insertBreakpointAt: pc
+]
+
 { #category : #'entering execution' }
 TargetAware >> bogusRetPC [
 	^16rBADF00D5
+]
+
+{ #category : #GT }
+TargetAware >> breakpoints [
+	breakpoints isNil ifTrue: [ breakpoints := OrderedCollection new ].
+	^ breakpoints
 ]
 
 { #category : #'target connection' }
@@ -110,6 +127,47 @@ TargetAware >> decorateDisassembly: anInstructionString for: aSymbolManager from
 { #category : #'target connection' }
 TargetAware >> gdb [
 	^gdb
+]
+
+{ #category : #GT }
+TargetAware >> gtInspectorAccessWatchpointsIn: composite [
+	<gtInspectorPresentationOrder: 33>
+	composite fastList
+		title: 'Access watchpoints';
+		display: [ #(1 2 3) ];
+		act: [ self addBreakpoint ] icon: GLMUIThemeExtraIcons glamorousAdd entitled: 'add';
+		act: [ self removeBreakpoint ] icon: GLMUIThemeExtraIcons glamorousAdd entitled: 'remove'
+]
+
+{ #category : #GT }
+TargetAware >> gtInspectorBreakpointsIn: composite [
+	<gtInspectorPresentationOrder: 30>
+	composite fastList
+		title: 'Breakpoints';
+		display: [ self breakpoints ];
+		format: [ :a | '0x', a printStringHex ];
+		act: [ self addBreakpoint ] icon: GLMUIThemeExtraIcons glamorousAdd entitled: 'add';
+		act: [ self removeBreakpoint ] icon: GLMUIThemeExtraIcons glamorousRemove entitled: 'remove'
+]
+
+{ #category : #GT }
+TargetAware >> gtInspectorReadWatchpointsIn: composite [
+	<gtInspectorPresentationOrder: 31>
+	composite fastList
+		title: 'Read watchpoints';
+		display: [ #(1 2 3) ];
+		act: [ self addBreakpoint ] icon: GLMUIThemeExtraIcons glamorousAdd entitled: 'add';
+		act: [ self removeBreakpoint ] icon: GLMUIThemeExtraIcons glamorousAdd entitled: 'remove'
+]
+
+{ #category : #GT }
+TargetAware >> gtInspectorWriteWatchpointsIn: composite [
+	<gtInspectorPresentationOrder: 32>
+	composite fastList
+		title: 'Write watchpoints';
+		display: [ #(1 2 3) ];
+		act: [ self addBreakpoint ] icon: GLMUIThemeExtraIcons glamorousAdd entitled: 'add';
+		act: [ self removeBreakpoint ] icon: GLMUIThemeExtraIcons glamorousAdd entitled: 'remove'
 ]
 
 { #category : #'error handling' }
@@ -179,9 +237,16 @@ TargetAware >> initEmptyPcMap [
 	pcMap := Dictionary new
 ]
 
+{ #category : #'as yet unclassified' }
+TargetAware >> insertBreakpointAt: addr [
+	(self breakpoints includes: addr)
+		ifFalse: [ gdb insertHWBreakpointAt: addr ].
+	self breakpoints add: addr.
+]
+
 { #category : #'target connection' }
 TargetAware >> insertPredefinedBreakpoints [
-	self predefinedBreakpoints do: [ :bkptAddress | self gdb insertHWBreakpointAt: bkptAddress ]
+	self predefinedBreakpoints do: [ :bkptAddress | self insertBreakpointAt: bkptAddress ]
 ]
 
 { #category : #execution }
@@ -227,6 +292,11 @@ TargetAware >> primitiveDisassembleAt: address inMemory: memory [
 		s space.
 		disasm := s contents, disasm ].
 	^{ 4. disasm. }
+]
+
+{ #category : #GT }
+TargetAware >> removeBreakpoint [
+	self shouldBeImplemented 
 ]
 
 { #category : #execution }
