@@ -281,6 +281,16 @@ RemoteGDB >> recognizedStopCodes [
 	)
 ]
 
+{ #category : #'general query commands' }
+RemoteGDB >> removeHWBreakpointAt: addr [
+	| answer |
+	answer := self q: 'z1,',
+		addr printStringHex,
+		',',
+		self z1kind printStringHex.
+	answer = 'OK' ifFalse: [ self error ]
+]
+
 { #category : #registers }
 RemoteGDB >> resetRegisterCache [
 	registerCache isNil ifFalse: [self sendRegistersToRSP].

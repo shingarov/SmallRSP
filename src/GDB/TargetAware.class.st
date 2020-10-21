@@ -142,12 +142,14 @@ TargetAware >> gtInspectorAccessWatchpointsIn: composite [
 { #category : #GT }
 TargetAware >> gtInspectorBreakpointsIn: composite [
 	<gtInspectorPresentationOrder: 30>
-	composite fastList
+	| fl |
+	fl := composite fastList.
+	fl
 		title: 'Breakpoints';
 		display: [ self breakpoints ];
 		format: [ :a | '0x', a printStringHex ];
 		act: [ self addBreakpoint ] icon: GLMUIThemeExtraIcons glamorousAdd entitled: 'add';
-		act: [ self removeBreakpoint ] icon: GLMUIThemeExtraIcons glamorousRemove entitled: 'remove'
+		act: [ self removeBreakpoint: [ fl selection ] ] icon: GLMUIThemeExtraIcons glamorousRemove entitled: 'remove'
 ]
 
 { #category : #GT }
@@ -297,6 +299,15 @@ TargetAware >> primitiveDisassembleAt: address inMemory: memory [
 { #category : #GT }
 TargetAware >> removeBreakpoint [
 	self shouldBeImplemented 
+]
+
+{ #category : #'as yet unclassified' }
+TargetAware >> removeBreakpoint: bkptEvaluator [
+	| addr |
+	addr := bkptEvaluator value.
+	gdb removeHWBreakpointAt: addr.
+	self breakpoints remove: addr
+	
 ]
 
 { #category : #execution }
