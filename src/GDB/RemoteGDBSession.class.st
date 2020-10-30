@@ -89,8 +89,9 @@ RemoteGDBSession >> read32At: addr [
 	answer := self q: 'm',
 		addr printStringHex,
 		',4'.
-	processorDescription endian == #little ifTrue: [ answer := answer reverseInt32Endianness ].
-	^Integer readFrom: answer radix: 16
+	answer := Integer readFrom: answer radix: 16.
+	processorDescription endian == #little ifTrue: [ answer := answer byteSwap32 ].
+	^answer
 ]
 
 { #category : #'RSP commands' }
