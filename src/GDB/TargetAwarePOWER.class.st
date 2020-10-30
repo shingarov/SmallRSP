@@ -340,7 +340,7 @@ TargetAwarePOWER >> handleFailingFPArithmetic: instr at: pc [
 
 { #category : #'error handling' }
 TargetAwarePOWER >> handleFailingLWZ: instr at: pc [
-	| baseAddr regIdx destReg srcReg ra rt offset |
+	| baseAddr destReg ra rt offset |
 	
 	"peel format D1"
 	offset := instr fieldValue: 'd'.
@@ -358,47 +358,6 @@ TargetAwarePOWER >> handleFailingLWZ: instr at: pc [
 				type: #read
 				accessor: destReg)
 			signal
-"	(self instructionIsSTR: instr) ifTrue:
-		[^(ProcessorSimulationTrap
-				pc: pc
-				nextpc: pc + 4 
-				address: (self perform: baseReg) + offset
-				type: #write
-				accessor: srcReg)
-			signal].
-	(self instructionIsLDRB: instr) ifTrue:
-		[^(ProcessorSimulationTrap
-				pc: pc
-				nextpc: pc + 4 
-				address: (self perform: baseReg) + offset
-				type: #read
-				accessor: destReg)
-			signal].
-	(self instructionIsSTRB: instr) ifTrue:
-		[^(ProcessorSimulationTrap
-				pc: pc
-				nextpc: pc + 4 
-				address: (self perform: baseReg) + offset
-				type: #write
-				accessor: srcReg)
-			signal].
-	(self instructionIsLDRH: instr) ifTrue:
-		[^(ProcessorSimulationTrap
-				pc: pc
-				nextpc: pc + 4 
-				address: (self perform: baseReg) + offset
-				type: #read
-				accessor: destReg)
-			signal].
-	(self instructionIsSTRH: instr) ifTrue:
-		[^(ProcessorSimulationTrap
-				pc: pc
-				nextpc: pc + 4 
-				address: (self perform: baseReg) + offset
-				type: #write
-				accessor: srcReg)
-			signal].
-"
 ]
 
 { #category : #'error handling' }
