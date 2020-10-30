@@ -16,7 +16,7 @@ SimulationAddressSpace class >> new: bytes [
 	between the processor and memory."
 	| instance |
 	instance := self gdb: TargetAware current gdb.
-	instance shmemSize: 120*1024*1024.
+	instance shmemSize: 16r0CA20048 - 16r20000. "more or less how big the squeak thinshell is now"
 	TargetAware current class zeroROChunkIn: instance.
 	^instance
 ]
