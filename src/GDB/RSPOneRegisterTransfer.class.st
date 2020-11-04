@@ -12,7 +12,7 @@ Class {
 
 { #category : #writing }
 RSPOneRegisterTransfer >> encodeEnv: aDictionary endian: endian [
-	| value bytes |
+	| value |
 	value := aDictionary at: self regName.
 	^self encodeValue: value endian: endian 
 ]
