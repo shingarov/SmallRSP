@@ -28,6 +28,17 @@ RSPOneRegisterTransfer >> encodeValue: value endian: endian [
 	^v
 ]
 
+{ #category : #printing }
+RSPOneRegisterTransfer >> printOn: aStream [
+	self regNum printOn: aStream.
+	aStream nextPutAll: ': '.
+	aStream nextPutAll: self regName.
+	aStream nextPutAll: '['.
+	self width printOn: aStream.
+	aStream nextPutAll: ']'.
+	
+]
+
 { #category : #reading }
 RSPOneRegisterTransfer >> readFrom: aStream endian: endian [
 	| text int |
