@@ -21,6 +21,8 @@ RSPOneRegisterTransfer >> encodeEnv: aDictionary endian: endian [
 RSPOneRegisterTransfer >> encodeValue: value endian: endian [
 	| v |
 	v := value.
+	v isString ifTrue: [ ^v ]. "those uninterpreted hex strings"
+	v isNil ifTrue: [ v := 0 ].
 	width = 32 ifTrue: [ endian = #little ifTrue: [ v := v byteSwap32 ].
 		^v printStringBase: 16 length: self width // 4 padded: true ].
 	width = 64 ifTrue: [ endian = #little ifTrue: [ v := v byteSwap64 ].
