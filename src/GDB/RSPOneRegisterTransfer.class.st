@@ -32,6 +32,13 @@ RSPOneRegisterTransfer >> encodeValue: value endian: endian [
 RSPOneRegisterTransfer >> readFrom: aStream endian: endian [
 	| text int |
 	text := aStream next: width//4.
+	text first = $x ifTrue: [
+		"From GDB manual, chapter E.2: Packets:
+		When reading registers from a trace frame (see Using the Collected Data),
+		the stub may also return a string of literal x's in place of the register data digits,
+		to indicate that the corresponding register has not been collected,
+		thus its value is unavailable."
+		^nil ].
 	int := Integer readFrom: text base: 16.
 	width = 32 ifTrue: [ ^endian = #little ifTrue: [ int byteSwap32 ] ifFalse: [ int ] ].
 	width = 64 ifTrue: [ ^endian = #little ifTrue: [ int byteSwap64 ] ifFalse: [ int ] ].
