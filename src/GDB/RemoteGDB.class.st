@@ -165,7 +165,14 @@ RemoteGDB >> gtInspectorItemsIn: composite [
 		title: 'Registers';
 		display: [ self getRegisters associations ];
 		column: 'Register' evaluated: [ :each | each key ];
-		column: 'Hex' evaluated: [ :each | each value printStringHex ]
+		column: 'Hex' evaluated: [ :each |
+			| x |
+			x := each value.
+			x isNil
+				ifTrue: [ '?' ]
+				ifFalse: [ 
+					x isString 
+						ifTrue: [ x ] ifFalse: [ x printStringHex ]]]
 ]
 
 { #category : #'stop codes' }
