@@ -14,5 +14,6 @@ MinicloudThinshellDoodle >> testConnection [
 	"
 	MinicloudThinshellDoodle new testConnection
 	"
-	self halt; connectGdb
+	self halt; connectGdb.
+	gdb s
 ]

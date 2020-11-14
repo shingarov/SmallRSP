@@ -19,12 +19,7 @@ JITDebugger class >> defaultTitle [
 
 { #category : #testing }
 JITDebugger class >> handlesContext: aContext [
-	| activationPredicate |
-	activationPredicate := JITCodeDebugSession activationPredicate.
-	^activationPredicate matches: aContext 
-
-	"^ (aContext stackOfSize: self lookupStackSize) 
-		anySatisfy: [ :ctx | activationPredicate matches: ctx ]"
+	^JITCodeDebugSession activationPredicate matches: aContext
 ]
 
 { #category : #'tools registry' }
