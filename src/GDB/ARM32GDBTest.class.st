@@ -42,12 +42,11 @@ ARM32GDBTest >> tcpPort [
 ]
 
 { #category : #'target connection' }
-ARM32GDBTest >> testConnectZ7 [
+ARM32GDBTest >> testConnect [
 	| initialPC firstInstruction firstInstrAsm |
 	self connectGdb.
 	self createRAM.
 	initialPC := gdb pc.
 	firstInstruction := memory currentInstruction.
-	firstInstruction disassemble.
-	firstInstrAsm := firstInstruction disassemble 
+	firstInstrAsm := firstInstruction disassemble
 ]
