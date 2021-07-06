@@ -173,6 +173,15 @@ SharedRAM >> unsignedLongAtAddr: addr bigEndian: bigEndian [
 	^int
 ]
 
+{ #category : #reading }
+SharedRAM >> unsignedShortAtAddr: addr bigEndian: bigEndian [
+	| backingAddr int |
+	backingAddr := self translate: addr.
+	int := backingAddr unsignedShortAt: 1.
+	bigEndian ifTrue: [ int := int byteSwap32].
+	^int
+]
+
 { #category : #'address translation' }
 SharedRAM >> virt2phys: anAddress [
 	self subclassResponsibility
