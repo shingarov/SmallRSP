@@ -8,17 +8,31 @@ Class {
 }
 
 { #category : #'address translation' }
+Gem5SharedRAM >> lowestMappedAddress [
+	^16r20000
+]
+
+{ #category : #'address translation' }
 Gem5SharedRAM >> tlb [
 	tlb isNil ifTrue: [ tlb := self getTLB ].
 	^tlb
 ]
 
 { #category : #'address translation' }
-Gem5SharedRAM >> virt2phys: anAddress [
+Gem5SharedRAM >> translateViaTLB: anAddress [
 	" Answer the physical address for the given virtual address,
 	 if it is mapped, nil otherwise. "
 	| pageVirt pagePhys |
 	pageVirt := anAddress bitAnd: self class pageMask.
 	pagePhys := self tlb at: pageVirt ifAbsent: [ ^nil ].
 	^pagePhys bitOr: (anAddress bitAnd: self class offsetMask)
+]
+
+{ #category : #'address translation' }
+Gem5SharedRAM >> virt2phys: anAddress [
+	^anAddress - self lowestMappedAddress
+	"| answer |
+	answer := self translateViaTLB: anAddress.
+	anAddress - 16r20000 = answer ifFalse: [ self shouldBeImplemented ].
+	^answer"
 ]
