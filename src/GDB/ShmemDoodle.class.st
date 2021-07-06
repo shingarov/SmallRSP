@@ -2,7 +2,7 @@ Class {
 	#name : #ShmemDoodle,
 	#superclass : #RemoteMemoryDoodle,
 	#instVars : [
-		'plainRAM'
+		'remoteWireRAM'
 	],
 	#category : #'GDB-Doodles'
 }
@@ -11,7 +11,7 @@ Class {
 ShmemDoodle >> connectGdb [
 	super connectGdb.
 	memory shmemSize: 16r120000 + (120*1024*1024). "for Squeak"
-	plainRAM := SimpleSharedRAM gdb: gdb.
+	remoteWireRAM := RemoteRAM gdb: gdb.
 	^gdb
 ]
 
@@ -31,12 +31,22 @@ ShmemDoodle new testManualNZone2.
 
 { #category : #'target connection' }
 ShmemDoodle >> remoteMemoryClass [
-	^SimpleSharedRAM
+	^Gem5SharedRAM
 ]
 
 { #category : #'tests-agreement' }
 ShmemDoodle >> testSharedToNonShared [
-	self shouldBeImplemented
+	"Write some data to the shared segment
+	and try retrieving it over RSP."
+	| addr x |
+	self connectGdb.
+	addr := 16r20000.
+	x := 16r1234ABCD.
+	memory longAtAddr: addr put: x bigEndian: false.
+	self assert: (remoteWireRAM unsignedLongAtAddr: addr bigEndian: false) equals: x.
+	gdb kill
+	 
+	
 ]
 
 { #category : #'tests-agreement' }
