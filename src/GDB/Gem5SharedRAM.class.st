@@ -30,9 +30,9 @@ Gem5SharedRAM >> translateViaTLB: anAddress [
 
 { #category : #'address translation' }
 Gem5SharedRAM >> virt2phys: anAddress [
-	^anAddress - self lowestMappedAddress
-	"| answer |
-	answer := self translateViaTLB: anAddress.
-	anAddress - 16r20000 = answer ifFalse: [ self shouldBeImplemented ].
-	^answer"
+	^self translateViaTLB: anAddress.
+	"TODO: Investigate why the mapping is now more complex
+	than what we had with the 2nd-hackathon's version of gem5"
+	"^anAddress - self lowestMappedAddress"
+
 ]
