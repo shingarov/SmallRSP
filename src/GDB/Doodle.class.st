@@ -1,6 +1,6 @@
 Class {
 	#name : #Doodle,
-	#superclass : #Object,
+	#superclass : #TestCase,
 	#category : #'GDB-Doodles'
 }
 
