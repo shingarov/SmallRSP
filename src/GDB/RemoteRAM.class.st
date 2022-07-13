@@ -124,10 +124,13 @@ RemoteRAM >> longAtAddr: addr put: aValue bigEndian: bigEndian [
 RemoteRAM >> read: n bytesAsHexAt: addr [
 	"Answer the hex string the gdbserver will return to represent the n bytes read from address addr.
 	All read operations are implemented on top of this primitive."
-	^self gdb q: 'm',
+	| answer |
+	answer := self gdb q: 'm',
 		addr printStringHex,
 		',',
-		n printStringHex
+		n printStringHex.
+	(answer size = 3 and: [answer first = $E]) ifTrue: [ GdbError signalWith: answer ].
+	^answer
 
 ]
 
