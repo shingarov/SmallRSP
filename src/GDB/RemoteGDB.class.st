@@ -158,7 +158,7 @@ RemoteGDB >> getRegistersFromRSP [
 	^self decodeGPacket: stream
 ]
 
-{ #category : #registers }
+{ #category : #GT }
 RemoteGDB >> gtInspectorItemsIn: composite [
 	<gtInspectorPresentationOrder: 20>
 	^composite fastTable
