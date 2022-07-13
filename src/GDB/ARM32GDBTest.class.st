@@ -1,10 +1,6 @@
 Class {
 	#name : #ARM32GDBTest,
-	#superclass : #TestCase,
-	#instVars : [
-		'gdb',
-		'memory'
-	],
+	#superclass : #SimpleRspTest,
 	#category : #'GDB-Tests'
 }
 
@@ -17,11 +13,6 @@ ARM32GDBTest >> connectGdb [
 ]
 
 { #category : #'target connection' }
-ARM32GDBTest >> createRAM [
-	memory := self remoteMemoryClass gdb: gdb
-]
-
-{ #category : #'target connection' }
 ARM32GDBTest >> debuggerClass [
 	^RemoteGDBSession
 ]
@@ -31,22 +22,11 @@ ARM32GDBTest >> hostIP [
 	^'z7'
 ]
 
-{ #category : #'target connection' }
-ARM32GDBTest >> remoteMemoryClass [
-	^RemoteRAM
-]
-
-{ #category : #'target connection' }
-ARM32GDBTest >> tcpPort [
-	^7000
-]
-
-{ #category : #'target connection' }
+{ #category : #tests }
 ARM32GDBTest >> testConnect [
-	| initialPC firstInstruction firstInstrAsm |
-	self connectGdb.
-	self createRAM.
+	| initialPC nextPC |
+	self connectGdb; createRAM.
 	initialPC := gdb pc.
-	firstInstruction := memory currentInstruction.
-	firstInstrAsm := firstInstruction disassemble
+	gdb s.
+	nextPC := gdb pc
 ]
