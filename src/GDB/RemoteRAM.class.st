@@ -213,6 +213,11 @@ RemoteRAM >> unsignedLongAt: byteIndex put: int [
 ]
 
 { #category : #reading }
+RemoteRAM >> unsignedLongAtAddr: byteIndex [ 
+	^self unsignedLongAtAddr: byteIndex bigEndian: self isBigEndian
+]
+
+{ #category : #reading }
 RemoteRAM >> unsignedLongAtAddr: addr bigEndian: bigEndian [
 	| string int |
 	string := self read: 4 bytesAsHexAt: addr.
