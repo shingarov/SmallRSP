@@ -104,7 +104,7 @@ RemoteGDB >> analyzeContinueAnswerT: answer [
 		| pair k v |
 		pair := textPair findTokens: ':'.
 		k := pair first.
-		v := pair second.
+		v := pair size=2 ifTrue: [pair second] ifFalse: [nil].
 		(self recognizedStopCodes includes: k)
 			ifTrue: [ stopReason := k. stopArgument := v ] ifFalse: [
 		k = 'thread' ifTrue: [ thread := v ] ifFalse: [
