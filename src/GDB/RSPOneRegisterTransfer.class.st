@@ -53,8 +53,8 @@ RSPOneRegisterTransfer >> readFrom: aStream endian: endian [
 		thus its value is unavailable."
 		^nil ].
 	int := Integer readFrom: text base: 16.
-	width = 32 ifTrue: [ ^endian = #little ifTrue: [ int byteSwap32 ] ifFalse: [ int ] ].
-	width = 64 ifTrue: [ ^endian = #little ifTrue: [ int byteSwap64 ] ifFalse: [ int ] ].
+	width = 32 ifTrue: [ ^endian ifBig: [ int ] ifLittle: [ int byteSwap32 ] ].
+	width = 64 ifTrue: [ ^endian ifBig: [ int ] ifLittle: [ int byteSwap64 ] ].
 	^text "TODO - what do we do with these i396 floats?"
 ]
 

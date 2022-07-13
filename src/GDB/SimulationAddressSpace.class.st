@@ -41,8 +41,3 @@ SimulationAddressSpace >> endianness [
 	"Answer the endianness OF THE REMOTE TARGET."
 	^self gdb processorDescription endian
 ]
-
-{ #category : #'as yet unclassified' }
-SimulationAddressSpace >> isBigEndian [
-	^self endianness == #big
-]

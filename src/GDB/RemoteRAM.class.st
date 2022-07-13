@@ -246,15 +246,19 @@ RemoteRAM >> unsignedLongAt: byteIndex put: int [
 
 { #category : #reading }
 RemoteRAM >> unsignedLongAtAddr: byteIndex [ 
-	^self unsignedLongAtAddr: byteIndex bigEndian: self isBigEndian
+	^self unsignedLongAtAddr: byteIndex endian: self endianness
 ]
 
 { #category : #reading }
-RemoteRAM >> unsignedLongAtAddr: addr bigEndian: bigEndian [
+RemoteRAM >> unsignedLongAtAddr: addr endian: endianness [
 	| string int |
 	string := self read: 4 bytesAsHexAt: addr.
+	endianness ifLittle: [ string :=
+		(string copyFrom: 7 to: 8),
+		(string copyFrom: 5 to: 6),
+		(string copyFrom: 3 to: 4),
+		(string copyFrom: 1 to: 2) ].
 	int := Integer readFrom: string radix: 16.
-	bigEndian ifFalse: [ int := int byteSwap32 ].
 	^int
 ]
 
