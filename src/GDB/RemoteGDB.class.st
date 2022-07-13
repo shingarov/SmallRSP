@@ -207,7 +207,7 @@ RemoteGDB >> kill [
 	[ | answer |
 	answer := self q: 'k'.
 	answer = 'OK' ifFalse: [ self error: answer ].
-	^self ] on: ConnectionClosed do: [ ^self ]
+	^self ] on: GdbChildExited do: [ ^self ]
 
 ]
 

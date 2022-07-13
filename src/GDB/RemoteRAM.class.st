@@ -78,12 +78,10 @@ RemoteRAM >> gtInspectorCodeIn: composite [
 	<gtInspectorPresentationOrder: 20>
 	gdb isNil ifTrue: [^nil].
 	^composite fastList
-		"inspect;"
-		"noSelection;"
 		title: 'Code';
 		display: [ self codeListContents ];
-		act: [ :pr | gdb s. pr update ] icon: GLMUIThemeExtraIcons glamorousInto entitled: 'si';
-		act: [ :pr | gdb c. pr update ] icon: GLMUIThemeExtraIcons glamorousGo entitled: 'cont';
+		act: [ :pr | [gdb s] on: InferiorExited do: [gdb:=nil]. pr update ] icon: GLMUIThemeExtraIcons glamorousInto entitled: 'si';
+		act: [ :pr | [gdb c] on: InferiorExited do: [gdb:=nil]. pr update ] icon: GLMUIThemeExtraIcons glamorousGo entitled: 'cont';
 		act: [ :pr | gdb kill. gdb := nil. pr update ] icon: GLMUIThemeExtraIcons glamorousCancel entitled: 'kill'
 ]
 
