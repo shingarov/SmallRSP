@@ -40,6 +40,24 @@ RemoteRAM >> byteAtAddr: byteAddress put: byte [
 	^ self writeBytesHex: data toAddrHex: textualAddr hexSize: '1'
 ]
 
+{ #category : #GT }
+RemoteRAM >> codeListContents [
+	gdb isNil ifTrue: [^nil].
+	^(gdb pc - 8 to: gdb pc + 16 by: 4) collect: [ :addr |
+		| stream |
+		stream := WriteStream on: String new.
+		addr printOn: stream base: 16 nDigits: gdb processorDescription wordsize / 4.
+		stream nextPutAll: (gdb pc=addr ifTrue: [' -> '] ifFalse: '    ').
+		stream nextPutAll: (self disassembleAt: addr).
+		stream contents ]
+]
+
+{ #category : #'as yet unclassified' }
+RemoteRAM >> disassembleAt: address [
+	[^self gdb processorDescription disassemble: (self unsignedLongAtAddr: address)]
+		on: Error do: [^String with: Character replacementCharacter]
+]
+
 { #category : #'target synchronization' }
 RemoteRAM >> flush [
 	"Do nothing because I write directly to the target's memory"
@@ -53,6 +71,20 @@ RemoteRAM >> gdb [
 { #category : #'debugger access' }
 RemoteRAM >> gdb: anObject [
 	gdb := anObject
+]
+
+{ #category : #GT }
+RemoteRAM >> gtInspectorCodeIn: composite [
+	<gtInspectorPresentationOrder: 20>
+	gdb isNil ifTrue: [^nil].
+	^composite fastList
+		"inspect;"
+		"noSelection;"
+		title: 'Code';
+		display: [ self codeListContents ];
+		act: [ :pr | gdb s. pr update ] icon: GLMUIThemeExtraIcons glamorousInto entitled: 'si';
+		act: [ :pr | gdb c. pr update ] icon: GLMUIThemeExtraIcons glamorousGo entitled: 'cont';
+		act: [ :pr | gdb kill. gdb := nil. pr update ] icon: GLMUIThemeExtraIcons glamorousCancel entitled: 'kill'
 ]
 
 { #category : #reading }
