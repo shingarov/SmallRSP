@@ -1,0 +1,4 @@
+[submodule "mw_dmi/urjtag"]
+	path = mw_dmi/urjtag
+	url = git@github.com:shingarov/urjtag.git
+	branch = ftdi-arty

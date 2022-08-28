@@ -2,29 +2,24 @@ Class {
 	#name : #RemoteGdbFeatureURIProvider,
 	#superclass : #Object,
 	#instVars : [
-		'gdb'
+		'rsp'
 	],
 	#category : #'GDB-RSP'
 }
 
-{ #category : #'as yet unclassified' }
-RemoteGdbFeatureURIProvider class >> gdb: aGDB [
-	^self new
-		gdb: aGDB;
+{ #category : #'instance creation' }
+RemoteGdbFeatureURIProvider class >> rsp: anRSPClient [
+	^self basicNew
+		rsp: anRSPClient;
 		yourself 
-]
-
-{ #category : #accessing }
-RemoteGdbFeatureURIProvider >> gdb [
-	^ gdb
-]
-
-{ #category : #accessing }
-RemoteGdbFeatureURIProvider >> gdb: anObject [
-	gdb := anObject
 ]
 
 { #category : #API }
 RemoteGdbFeatureURIProvider >> get: filename [
-	^gdb qXfer readFeatureXML: filename
+	^rsp qXfer readFeatureXML: filename
+]
+
+{ #category : #accessing }
+RemoteGdbFeatureURIProvider >> rsp: anObject [
+	rsp := anObject
 ]

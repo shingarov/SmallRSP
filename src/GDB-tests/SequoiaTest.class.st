@@ -1,0 +1,139 @@
+Class {
+	#name : #SequoiaTest,
+	#superclass : #RefBoardGDBTest,
+	#category : #'GDB-tests-Connected'
+}
+
+{ #category : #running }
+SequoiaTest >> disconnectGDB [
+	gdb disconnect 
+]
+
+{ #category : #'target connection' }
+SequoiaTest >> gdbClass [
+	^BDI2000PPC400
+]
+
+{ #category : #'target connection' }
+SequoiaTest >> host [
+	^'bdi2000'
+]
+
+{ #category : #'target connection' }
+SequoiaTest >> port [
+	^2001
+]
+
+{ #category : #'as yet unclassified' }
+SequoiaTest >> ppc440features [
+^'<?xml version="1.0"?>
+
+<!-- This description is slightly simplified in that it does
+     not take into account possible variations in features resulting
+     in non-sequential numbering of registers.  -->
+
+<target>
+  <architecture>powerpc</architecture>
+  <feature name="org.gnu.gdb.power">
+    <reg name="r0" bitsize="32"/>
+    <reg name="r1" bitsize="32"/>
+    <reg name="r2" bitsize="32"/>
+    <reg name="r3" bitsize="32"/>
+    <reg name="r4" bitsize="32"/>
+    <reg name="r5" bitsize="32"/>
+    <reg name="r6" bitsize="32"/>
+    <reg name="r7" bitsize="32"/>
+    <reg name="r8" bitsize="32"/>
+    <reg name="r9" bitsize="32"/>
+    <reg name="r10" bitsize="32"/>
+    <reg name="r11" bitsize="32"/>
+    <reg name="r12" bitsize="32"/>
+    <reg name="r13" bitsize="32"/>
+    <reg name="r14" bitsize="32"/>
+    <reg name="r15" bitsize="32"/>
+    <reg name="r16" bitsize="32"/>
+    <reg name="r17" bitsize="32"/>
+    <reg name="r18" bitsize="32"/>
+    <reg name="r19" bitsize="32"/>
+    <reg name="r20" bitsize="32"/>
+    <reg name="r21" bitsize="32"/>
+    <reg name="r22" bitsize="32"/>
+    <reg name="r23" bitsize="32"/>
+    <reg name="r24" bitsize="32"/>
+    <reg name="r25" bitsize="32"/>
+    <reg name="r26" bitsize="32"/>
+    <reg name="r27" bitsize="32"/>
+    <reg name="r28" bitsize="32"/>
+    <reg name="r29" bitsize="32"/>
+    <reg name="r30" bitsize="32"/>
+    <reg name="r31" bitsize="32"/>
+
+    <reg name="f0" bitsize="64" type="ieee_double" regnum="32"/>
+    <reg name="f1" bitsize="64" type="ieee_double"/>
+    <reg name="f2" bitsize="64" type="ieee_double"/>
+    <reg name="f3" bitsize="64" type="ieee_double"/>
+    <reg name="f4" bitsize="64" type="ieee_double"/>
+    <reg name="f5" bitsize="64" type="ieee_double"/>
+    <reg name="f6" bitsize="64" type="ieee_double"/>
+    <reg name="f7" bitsize="64" type="ieee_double"/>
+    <reg name="f8" bitsize="64" type="ieee_double"/>
+    <reg name="f9" bitsize="64" type="ieee_double"/>
+    <reg name="f10" bitsize="64" type="ieee_double"/>
+    <reg name="f11" bitsize="64" type="ieee_double"/>
+    <reg name="f12" bitsize="64" type="ieee_double"/>
+    <reg name="f13" bitsize="64" type="ieee_double"/>
+    <reg name="f14" bitsize="64" type="ieee_double"/>
+    <reg name="f15" bitsize="64" type="ieee_double"/>
+    <reg name="f16" bitsize="64" type="ieee_double"/>
+    <reg name="f17" bitsize="64" type="ieee_double"/>
+    <reg name="f18" bitsize="64" type="ieee_double"/>
+    <reg name="f19" bitsize="64" type="ieee_double"/>
+    <reg name="f20" bitsize="64" type="ieee_double"/>
+    <reg name="f21" bitsize="64" type="ieee_double"/>
+    <reg name="f22" bitsize="64" type="ieee_double"/>
+    <reg name="f23" bitsize="64" type="ieee_double"/>
+    <reg name="f24" bitsize="64" type="ieee_double"/>
+    <reg name="f25" bitsize="64" type="ieee_double"/>
+    <reg name="f26" bitsize="64" type="ieee_double"/>
+    <reg name="f27" bitsize="64" type="ieee_double"/>
+    <reg name="f28" bitsize="64" type="ieee_double"/>
+    <reg name="f29" bitsize="64" type="ieee_double"/>
+    <reg name="f30" bitsize="64" type="ieee_double"/>
+    <reg name="f31" bitsize="64" type="ieee_double"/>
+
+    <reg name="pc"  bitsize="32" type="code_ptr" regnum="64"/>
+    <reg name="msr" bitsize="32"/>
+    <reg name="cr"  bitsize="32"/>
+    <reg name="lr"  bitsize="32" type="code_ptr"/>
+    <reg name="ctr" bitsize="32"/>
+    <reg name="xer" bitsize="32"/>
+    <reg name="unknown1" bitsize="32"/>
+  </feature>
+</target>
+'
+]
+
+{ #category : #'as yet unclassified' }
+SequoiaTest >> processorDescription [
+	| pdl |
+	pdl:= AcProcessorDescriptions powerpc.
+	pdl regsInGPacket: self regsInGPacket.
+	^pdl
+]
+
+{ #category : #'as yet unclassified' }
+SequoiaTest >> regsInGPacket [
+	| xmlRoot |
+	xmlRoot := (GdbXmlParser new) parseString: self ppc440features.
+	^RemoteGdbXFER new regTransfersFrom: xmlRoot.
+
+]
+
+{ #category : #tests }
+SequoiaTest >> test1 [
+	self assert: gdb pc equals: 16rFFFFFFFC.
+	gdb s.
+	self assert: gdb pc equals: 16rFFFFF000.
+	gdb s.
+	self assert: gdb pc equals: 16rFFFFF004.
+]

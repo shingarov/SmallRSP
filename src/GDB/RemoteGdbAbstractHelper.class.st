@@ -2,7 +2,7 @@ Class {
 	#name : #RemoteGdbAbstractHelper,
 	#superclass : #Object,
 	#instVars : [
-		'gdb'
+		'rsp'
 	],
 	#category : #'GDB-RSP'
 }
@@ -14,12 +14,19 @@ RemoteGdbAbstractHelper class >> gdb: aRemoteGDB [
 		yourself 
 ]
 
-{ #category : #accessing }
-RemoteGdbAbstractHelper >> gdb [
-	^ gdb
+{ #category : #'instance creation' }
+RemoteGdbAbstractHelper class >> rsp: anRSPClient [
+	^self new
+		rsp: anRSPClient;
+		yourself 
 ]
 
 { #category : #accessing }
-RemoteGdbAbstractHelper >> gdb: anObject [
-	gdb := anObject
+RemoteGdbAbstractHelper >> rsp [
+	^ rsp
+]
+
+{ #category : #accessing }
+RemoteGdbAbstractHelper >> rsp: anObject [
+	rsp := anObject
 ]

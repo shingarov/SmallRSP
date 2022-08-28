@@ -1,7 +1,7 @@
 Class {
 	#name : #InterestingBreakpointAddresses,
 	#superclass : #Object,
-	#category : #'GDB-RSP'
+	#category : #'GDB-Cog'
 }
 
 { #category : #'general query commands' }

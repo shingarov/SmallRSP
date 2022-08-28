@@ -107,7 +107,7 @@ RSPStream >> receiveByte [
 	"Receive exactly one byte, waiting for it if neccesary.
 	This is at a level lower than escaping; see #receiveChar for the escaped version."
 	buf1 := ByteString new: 1.
-	(socket receiveDataInto: buf1) == 1 ifFalse: [GdbChildExited new signal].
+	(socket receiveDataInto: buf1) == 1 ifFalse: [InferiorExited new signal].
 	^buf1 first
 ]
 
@@ -119,6 +119,14 @@ RSPStream >> receiveChar [
 	byte := self receiveByte.
 	"Do NOT escape at this level; check for RLE, and then escaping is above."
 	^byte
+]
+
+{ #category : #'as yet unclassified' }
+RSPStream >> receiveHexLinesUntilOkStartingWith: initialAnswer [ 
+	initialAnswer = 'OK' ifTrue: [ ^'' ].
+	initialAnswer first = $O ifFalse: [ self error ].
+	^(String fromByteArray: (initialAnswer allButFirst charPairs collect: [ :ch | Integer readFrom: ch base: 16 ]) asByteArray),
+		(self receiveHexLinesUntilOkStartingWith: self receive)
 ]
 
 { #category : #API }

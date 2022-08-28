@@ -15,7 +15,7 @@ SimulationAddressSpace class >> new: bytes [
 	The only reason #new: is here is because there is no concept of conneciton
 	between the processor and memory."
 	| instance |
-	instance := self gdb: TargetAware current gdb.
+	instance := self gdb: #TargetAware "is this even used at all in TA-Cog?? this whole method should be removed" current gdb.
 	instance shmemSize: 16r0CA20048 - 16r20000. "more or less how big the squeak thinshell is now"
 	TargetAware current class zeroROChunkIn: instance.
 	^instance

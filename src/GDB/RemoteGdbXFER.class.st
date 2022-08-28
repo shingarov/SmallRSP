@@ -6,6 +6,7 @@ Class {
 
 { #category : #'as yet unclassified' }
 RemoteGdbXFER >> features: filename [
+	"Answer the fully-initialized (i.e. regsInGPacket in place, etc) PDL."
 	| root |
 	root := self readFeatureXML: filename.
 	root isNil ifTrue: [ ^nil ].
@@ -14,17 +15,17 @@ RemoteGdbXFER >> features: filename [
 
 { #category : #'as yet unclassified' }
 RemoteGdbXFER >> pdlForTarget: targetElement [
-	| arch pdl |
+	| arch |
 	arch := (targetElement findXPath: 'architecture') contentText.
-	pdl := AcProcessorDescriptions gdbArchName: arch.
-	gdb processorDescription: pdl
+	^AcProcessorDescriptions gdbArchName: arch
 ]
 
 { #category : #'as yet unclassified' }
 RemoteGdbXFER >> processTargetElement: target [
-	| registerArray oneRegTransfers regNum |
-	self pdlForTarget: target.
-	^self regTransfersFrom: target
+	| pdl |
+	pdl := self pdlForTarget: target.
+	pdl regsInGPacket: (self regTransfersFrom: target).
+	^pdl
 
 ]
 
@@ -32,7 +33,7 @@ RemoteGdbXFER >> processTargetElement: target [
 RemoteGdbXFER >> readAnnexResponse: filename from: offset [
 	| offsetHex |
 	offsetHex := offset printStringHex.
-	^gdb q: 'qXfer:features:read:', filename, ':', offsetHex, ',4000'
+	^rsp q: 'qXfer:features:read:', filename, ':', offsetHex, ',4000'
 ]
 
 { #category : #'as yet unclassified' }
@@ -64,8 +65,35 @@ RemoteGdbXFER >> readFeatureFile: filename from: offset [
 RemoteGdbXFER >> readFeatureXML: filename [
 	| gdbXmlParser xmlString |
 	xmlString := self readFeatureAnnex: filename from: 0.
-	gdbXmlParser := GdbXmlParser baseURI: (RemoteGdbFeatureURIProvider gdb: gdb).
+	gdbXmlParser := GdbXmlParser baseURI: (RemoteGdbFeatureURIProvider rsp: rsp).
 	^gdbXmlParser parseString: xmlString
+]
+
+{ #category : #'as yet unclassified' }
+RemoteGdbXFER >> readThreads [
+	| answer threads |
+	answer := gdb q: 'qXfer:threads:read::0,1000'.
+	(answer beginsWith: 'l') ifFalse: [ self shouldBeImplemented "multipacket???" ].
+	answer := answer allButFirst.
+
+	
+	threads := GdbXmlParser new parseString: answer.
+	threads name localName = 'threads' ifFalse: [ self error ].
+	
+	threads := threads findXPath: 'thread'.
+	threads isCollection ifFalse: [ threads := Array with: threads ].
+	threads := threads collect: [ :th | GdbThread
+		halt.
+		Integer readFrom: (th attributeAt: 'id') base: 16
+		
+		 ].
+	
+	self halt.
+	answer := '<threads>
+<thread id="4a0" core="3" name="modtalk.elf" />
+<thread id="4ab" core="1" name="modtalk.elf" />
+</threads>'.
+
 ]
 
 { #category : #'as yet unclassified' }

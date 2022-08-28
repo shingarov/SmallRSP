@@ -112,7 +112,7 @@ TargetAware >> convertInternalToInteger: unsigned [
 
 { #category : #'target connection' }
 TargetAware >> debuggerClass [
-	^RemoteGDBSession
+	^RemoteGDB
 ]
 
 { #category : #disassembly }
@@ -315,7 +315,7 @@ TargetAware >> runInMemory: aMemory [
 	| stopReason |
 	stopReason := gdb c.
 	stopReason signal = #SIGSEGV ifTrue: [^self handleExecutionPrimitiveFailureIn: aMemory].
-	stopReason signal = #SIGQUIT ifTrue: [ ^GdbChildExited signal ].
+	stopReason signal = #SIGQUIT ifTrue: [ ^InferiorExited signal ].
 
 	"Single-step, or breakpoint"
 	stopReason signal = #SIGTRAP ifTrue: [ ^self handleTrapIn: aMemory ].
