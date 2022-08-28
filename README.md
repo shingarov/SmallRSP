@@ -14,3 +14,16 @@ ACM SIGPLAN: IWST, Cambridge, UK.
 Shingarov, B. (2015). 
 Live Introspection of Target-Agnostic JIT in Simulation.
 ACM SIGPLAN: IWST, Brescia, Italy.
+
+## How to load
+
+### ...into Pharo or GT
+
+````
+Metacello new
+  baseline: 'SmallRSP';
+  repository: 'github://shingarov/SmallRSP:squeak';
+  load.
+````
+
+
