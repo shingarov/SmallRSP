@@ -20,8 +20,8 @@ LibUrJTAG >> urj_part_parts_set_instruction: ps _: iname [
 ]
 
 { #category : #'as yet unclassified' }
-LibUrJTAG >> urj_tap_chain_active_partZZ: chain [ 
-	^ self ffiCall: #( URJ_PART urj_tap_chain_active_part( URJ_CHAIN* chain ) )
+LibUrJTAG >> urj_tap_chain_active_part: chain [ 
+	^ self ffiCall: #( URJ_PART* urj_tap_chain_active_part( URJ_CHAIN* chain ) )
 ]
 
 { #category : #API }
