@@ -15,6 +15,16 @@ LibUrJTAG >> urj_error_describe [
 ]
 
 { #category : #'as yet unclassified' }
+LibUrJTAG >> urj_part_data_register_define: part _: name _: len [
+	^ self ffiCall: #( int urj_part_data_register_define( void* part, char* name, int len ) )
+]
+
+{ #category : #'as yet unclassified' }
+LibUrJTAG >> urj_part_instruction_define: part _: instruction _: code _: data_register [
+	^ self ffiCall: #( void* urj_part_parts_set_instruction( void* part, char* instruction, char* code, char* data_register ) )	
+]
+
+{ #category : #'as yet unclassified' }
 LibUrJTAG >> urj_part_parts_set_instruction: ps _: iname [
 	^ self ffiCall: #( int urj_part_parts_set_instruction( URJ_PARTS* ps, char* iname ) )	
 ]
@@ -65,7 +75,13 @@ LibUrJTAG >> xxxx [
 	jc active_part: 0.
 	
 	p := LibUrJTAG uniqueInstance urj_tap_chain_active_part: jc.
+	p isNull ifTrue: [ self error: 'Failed to get active JTAG part' ].
 	
+	rc := LibUrJTAG uniqueInstance urj_part_data_register_define: p _: 'IDCODE_REG' _: 32.
+	rc = 0 ifFalse: [ self error: 'JTAG failed to add IDCODE_REG register' ].
+	
+	(LibUrJTAG uniqueInstance urj_part_instruction_define: p _: 'IDCODE' _: '001001' _: 'IDCODE_REG') isNull
+		ifTrue: [ self error: 'JTAG failed to add IDCODE instruction' ].
 	
 	self halt.
 
