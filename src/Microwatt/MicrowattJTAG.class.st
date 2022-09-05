@@ -26,7 +26,7 @@ Class {
 	#classInstVars : [
 		'uniqueInstance'
 	],
-	#category : #Microwatt
+	#category : #'Microwatt-JTAG'
 }
 
 { #category : #'instance creation' }
@@ -36,7 +36,8 @@ MicrowattJTAG class >> connect [
 		init: 'DigilentNexysVideo'
 		freq: 0.
 	rc = 0 ifFalse: [ self error ].
-	uniqueInstance := self basicNew
+	uniqueInstance := self basicNew.
+	^uniqueInstance
 ]
 
 { #category : #'class initialization' }

@@ -1,7 +1,7 @@
 Class {
 	#name : #LibBSCAN2,
 	#superclass : #FFILibrary,
-	#category : #Microwatt
+	#category : #'Microwatt-JTAG'
 }
 
 { #category : #API }
