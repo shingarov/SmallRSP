@@ -56,23 +56,6 @@ RemoteGDB >> findOutCPU [
 
 ]
 
-{ #category : #GT }
-RemoteGDB >> gtInspectorRegistersIn: composite [
-	<gtInspectorPresentationOrder: 20>
-	^composite fastTable
-		title: 'Registers';
-		display: [ self getRegisters associations ];
-		column: 'Register' evaluated: [ :each | each key ];
-		column: 'Hex' evaluated: [ :each |
-			| x |
-			x := each value.
-			x isNil
-				ifTrue: [ '?' ]
-				ifFalse: [ 
-					x isString 
-						ifTrue: [ x ] ifFalse: [ x printStringHex ]]]
-]
-
 { #category : #breakpoints }
 RemoteGDB >> insertHWBreakpointAt: addr [
 	rsp insertBreakpoint: 1 at: addr kind: self zKind
@@ -86,11 +69,6 @@ RemoteGDB >> insertSWBreakpointAt: addr [
 { #category : #execution }
 RemoteGDB >> kill [
 	^rsp kill
-]
-
-{ #category : #GT }
-RemoteGDB >> nameForInspector [
-	^'GDB'
 ]
 
 { #category : #registers }

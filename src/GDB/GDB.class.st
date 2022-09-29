@@ -33,6 +33,28 @@ GDB >> getRegisters [
 	^registerCache
 ]
 
+{ #category : #GT }
+GDB >> gtInspectorRegistersIn: composite [
+	<gtInspectorPresentationOrder: 20>
+	^composite fastTable
+		title: 'Registers';
+		display: [ self getRegisters associations ];
+		column: 'Register' evaluated: [ :each | each key ];
+		column: 'Hex' evaluated: [ :each |
+			| x |
+			x := each value.
+			x isNil
+				ifTrue: [ '?' ]
+				ifFalse: [ 
+					x isString 
+						ifTrue: [ x ] ifFalse: [ x printStringHex ]]]
+]
+
+{ #category : #GT }
+GDB >> nameForInspector [
+	^'GDB'
+]
+
 { #category : #registers }
 GDB >> pc [
 	^self getRegister: self pcRegisterName 

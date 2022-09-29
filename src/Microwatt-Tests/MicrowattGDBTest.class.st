@@ -2,8 +2,7 @@ Class {
 	#name : #MicrowattGDBTest,
 	#superclass : #TestCase,
 	#instVars : [
-		'gdb',
-		'uld'
+		'gdb'
 	],
 	#category : #'Microwatt-Tests'
 }

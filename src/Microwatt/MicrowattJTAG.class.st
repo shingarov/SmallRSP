@@ -94,7 +94,7 @@ MicrowattJTAG class >> startUp: isImageStarting [
 { #category : #private }
 MicrowattJTAG >> connect [
 	| rc |
-	rc := LibMwDMI uniqueInstance init: 'DigilentNexysVideo' freq: 0.
+	rc := LibMwDMI uniqueInstance init: 'DigilentHS1 interface=1 index=0' freq: 0.
 	rc = 0 ifFalse: [ self error ].
 ]
 
@@ -150,6 +150,18 @@ MicrowattJTAG >> gpr_read: reg [
 { #category : #API }
 MicrowattJTAG >> icache_reset [
 	self dmi write: DBG_CORE_CTRL data: DBG_CORE_CTRL_ICRESET
+]
+
+{ #category : #API }
+MicrowattJTAG >> mem32At: addr [
+	| all |
+	addr \\ 4 = 0 ifFalse: [ UnalignedMemoryAccess signalFor: addr ].
+	all := self mem64At: addr.
+	^addr \\ 8 = 0
+		ifTrue: [ all bitAnd: 16rFFFFFFFF ]
+		ifFalse: [ all >> 32 ].
+
+	
 ]
 
 { #category : #API }
