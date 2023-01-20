@@ -88,6 +88,11 @@ RemoteGDB >> kill [
 	^rsp kill
 ]
 
+{ #category : #'memory-compatibility' }
+RemoteGDB >> memoryAt: addr put: aByteArray [
+	self writeBytes: aByteArray toAddr: addr
+]
+
 { #category : #GT }
 RemoteGDB >> nameForInspector [
 	^'GDB'
