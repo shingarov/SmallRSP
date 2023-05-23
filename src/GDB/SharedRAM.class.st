@@ -119,7 +119,9 @@ SharedRAM >> getTLB [
 
 { #category : #shmem }
 SharedRAM >> hostPtr [
-	hostPtr isNil ifTrue: [ hostPtr := Gem5SharedRAM gem5: shmemSize ].
+	hostPtr isNil ifTrue: [
+		hostPtr := Gem5SharedRAM gem5: shmemSize asInteger "to make sure shmemSize isnt nil"
+	].
 	^hostPtr
 ]
 
