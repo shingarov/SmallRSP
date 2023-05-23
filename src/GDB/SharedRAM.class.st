@@ -21,6 +21,7 @@ SharedRAM class >> gem5: nBytes [
 		with: 1 "MAP_SHARED"
 		with: fd
 		with: 0.
+	addr value = 16rFFFFFFFFFFFFFFFF ifTrue: [ self error ].
 	^addr
 
 "
