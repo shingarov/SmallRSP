@@ -109,7 +109,7 @@ SharedRAM >> forceWriteInt32: int toAddr: addr [
 { #category : #RSP }
 SharedRAM >> getTLB [
 	| answer |
-	answer := self gdb q: '.'.
+	answer := self gdb rsp q: '.'.
 	answer isEmpty ifTrue: [ self error: 'GDB failed to return TLB' ].
 	^Dictionary newFromAssociations:
 		(((answer findTokens: ';')
