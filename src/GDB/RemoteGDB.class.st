@@ -2,7 +2,8 @@ Class {
 	#name : #RemoteGDB,
 	#superclass : #GDB,
 	#instVars : [
-		'rsp'
+		'rsp',
+		'exe'
 	],
 	#category : #'GDB-RSP'
 }
@@ -45,6 +46,16 @@ RemoteGDB >> decodeGPacket: aStream [
 { #category : #execution }
 RemoteGDB >> disconnect [
 	^rsp disconnect
+]
+
+{ #category : #'BOGUS - MT exe' }
+RemoteGDB >> exe [
+	^exe
+]
+
+{ #category : #'BOGUS - MT exe' }
+RemoteGDB >> exe: aTAJExecutable [ 
+	exe := aTAJExecutable
 ]
 
 { #category : #registers }
