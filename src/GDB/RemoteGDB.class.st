@@ -164,19 +164,9 @@ RemoteGDB >> rsp: anObject [
 	rsp := anObject
 ]
 
-{ #category : #magick }
-RemoteGDB >> runStepsWithMagickCallback: magicCallbackBlock [
-	[ true ] whileTrue: [ self stepUntilMagick. magicCallbackBlock value ] 
-]
-
 { #category : #execution }
 RemoteGDB >> runUntil: aBlock [
 	[ self c ] doWhileFalse: aBlock
-]
-
-{ #category : #magick }
-RemoteGDB >> runUntilMagick [
-	self runUntil: [ self currentInstructionEncoding = (Integer readFrom: self exe objectMemory targetSetup magicInstruction radix: 2) ]
 ]
 
 { #category : #magick }
