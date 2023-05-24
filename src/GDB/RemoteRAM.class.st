@@ -187,7 +187,7 @@ RemoteRAM >> read: n bytesAtAddr: addr [
 { #category : #'remote endian' }
 RemoteRAM >> readInt32fromAddr: addr [
 	"Read, using the REMOTE TARGET endianness."
-	^self unsignedLongAtAddr: addr bigEndian: self isBigEndian
+	^self unsignedLongAtAddr: addr bigEndian: self endianness class = BigEndian
 ]
 
 { #category : #reading }
@@ -325,7 +325,7 @@ RemoteRAM >> writeBytesHex: aString toAddrHex: addr hexSize: s [
 { #category : #writing }
 RemoteRAM >> writeInt32: int toAddr: addr [
 	"Use the REMOTE TARGET's endianness."
-	self longAtAddr: addr put: int bigEndian: self isBigEndian
+	self longAtAddr: addr put: int bigEndian: self endianness class = BigEndian
 ]
 
 { #category : #writing }
