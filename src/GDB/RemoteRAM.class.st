@@ -150,6 +150,12 @@ RemoteRAM >> longAtAddr: addr put: aValue bigEndian: bigEndian [
 		hexSize: '4'
 ]
 
+{ #category : #reading }
+RemoteRAM >> read32At: addr [
+	"For compatibility with RemoteGFB, sigh"
+	^self readInt32fromAddr: addr
+]
+
 { #category : #'RSP protocol' }
 RemoteRAM >> read: n bytesAsHexAt: addr [
 	"Answer the hex string the gdbserver will return to represent the n bytes read from address addr.
