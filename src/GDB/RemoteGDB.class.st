@@ -184,8 +184,22 @@ RemoteGDB >> rsp: anObject [
 ]
 
 { #category : #execution }
-RemoteGDB >> runUntil: aBlock [
-	[ self c ] doWhileFalse: aBlock
+RemoteGDB >> runUntil: conditionBlock [
+	"Run (resume) debugee until it stops *and* `conditionBlock` returns `true`.
+	
+	 If the debugee stops and `conditionBlock` returns `false`, debugee is
+	 resumed and execution continues.
+	
+	 conditionBlock is (optionally) passed a stop reason (an instance of
+	 DebugStopped).
+	"
+
+	[ 
+		| stopReason |
+	
+		stopReason := self c.
+		conditionBlock cull: stopReason.
+	] whileFalse.
 ]
 
 { #category : #magick }
