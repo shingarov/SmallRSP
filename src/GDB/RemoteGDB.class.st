@@ -122,7 +122,7 @@ RemoteGDB >> read32At: addr [
 		addr printStringHex,
 		',4'.
 	answer := Integer readFrom: answer radix: 16.
-	processorDescription endian == #little ifTrue: [ answer := answer byteSwap32 ].
+	processorDescription endian ifLittle: [ answer := answer byteSwap32 ].
 	^answer
 ]
 
@@ -240,21 +240,16 @@ RemoteGDB >> writeBytes: aByteArray toAddr: addr [
 
 { #category : #memory }
 RemoteGDB >> writeInt32: int toAddr: addr [
-	| textualAddr answer data |
-	data := int printStringBase: 16 length: 8 padded: true.
-	processorDescription endian == #little ifTrue: [ data := data reverseInt32Endianness ].
-	textualAddr := addr printStringBase: 16 length: 8 padded: true.
-	answer := rsp
-		q: 'M', textualAddr,  ',4:', data.
-	answer = 'OK' ifFalse: [ self error: answer ].
-
-
+	self writeInt32s: { int } toAddr: addr
 ]
 
 { #category : #memory }
 RemoteGDB >> writeInt32s: arrayOfInt32s toAddr: addr [
 	| adjusted buffer textualAddr answer textualSize |
-	adjusted := processorDescription endian ifBig: [ arrayOfInt32s ] ifLittle: [ arrayOfInt32s collect: #byteSwap32 ].
+	adjusted := processorDescription endian 
+							ifBig: [ arrayOfInt32s ] 
+							ifLittle: [ arrayOfInt32s collect: #byteSwap32 ].
+							
 	buffer := WriteStream on: ''.
 	adjusted do: [ :anInt32 |
 		| data |
