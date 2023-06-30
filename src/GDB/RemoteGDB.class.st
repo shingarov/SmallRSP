@@ -121,6 +121,10 @@ RemoteGDB >> read32At: addr [
 	answer := rsp q: 'm',
 		addr printStringHex,
 		',4'.
+	(answer size = 3 and:[answer first == $E]) ifTrue:[
+		self error:'Failed to read 4 bytes at 0x', addr printStringHex.
+		^nil.
+	].
 	answer := Integer readFrom: answer radix: 16.
 	processorDescription endian ifLittle: [ answer := answer byteSwap32 ].
 	^answer
@@ -133,6 +137,10 @@ RemoteGDB >> readAt: addr nBytes: n [
 		addr printStringHex,
 		',',
 		n printStringHex.
+	(answer size = 3 and:[answer first == $E]) ifTrue:[
+		self error:'Failed to read ',n printString,' bytes at 0x', addr printStringHex.
+		^nil.
+	].
 	stream := ReadStream on: answer
 		from: 1
 		to: answer size.
