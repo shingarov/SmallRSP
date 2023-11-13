@@ -121,8 +121,12 @@ RemoteGDB >> read32At: addr [
 	answer := rsp q: 'm',
 		addr printStringHex,
 		',4'.
+	(answer size = 3 and:[answer first == $E]) ifTrue:[
+		self error:'Failed to read 4 bytes at 0x', addr printStringHex.
+		^nil.
+	].
 	answer := Integer readFrom: answer radix: 16.
-	processorDescription endian == #little ifTrue: [ answer := answer byteSwap32 ].
+	processorDescription endian ifLittle: [ answer := answer byteSwap32 ].
 	^answer
 ]
 
@@ -133,6 +137,10 @@ RemoteGDB >> readAt: addr nBytes: n [
 		addr printStringHex,
 		',',
 		n printStringHex.
+	(answer size = 3 and:[answer first == $E]) ifTrue:[
+		self error:'Failed to read ',n printString,' bytes at 0x', addr printStringHex.
+		^nil.
+	].
 	stream := ReadStream on: answer
 		from: 1
 		to: answer size.
@@ -176,8 +184,22 @@ RemoteGDB >> rsp: anObject [
 ]
 
 { #category : #execution }
-RemoteGDB >> runUntil: aBlock [
-	[ self c ] doWhileFalse: aBlock
+RemoteGDB >> runUntil: conditionBlock [
+	"Run (resume) debugee until it stops *and* `conditionBlock` returns `true`.
+	
+	 If the debugee stops and `conditionBlock` returns `false`, debugee is
+	 resumed and execution continues.
+	
+	 conditionBlock is (optionally) passed a stop reason (an instance of
+	 DebugStopped).
+	"
+
+	[ 
+		| stopReason |
+	
+		stopReason := self c.
+		conditionBlock cull: stopReason.
+	] whileFalse.
 ]
 
 { #category : #magick }
@@ -240,21 +262,16 @@ RemoteGDB >> writeBytes: aByteArray toAddr: addr [
 
 { #category : #memory }
 RemoteGDB >> writeInt32: int toAddr: addr [
-	| textualAddr answer data |
-	data := int printStringBase: 16 length: 8 padded: true.
-	processorDescription endian == #little ifTrue: [ data := data reverseInt32Endianness ].
-	textualAddr := addr printStringBase: 16 length: 8 padded: true.
-	answer := rsp
-		q: 'M', textualAddr,  ',4:', data.
-	answer = 'OK' ifFalse: [ self error: answer ].
-
-
+	self writeInt32s: { int } toAddr: addr
 ]
 
 { #category : #memory }
 RemoteGDB >> writeInt32s: arrayOfInt32s toAddr: addr [
 	| adjusted buffer textualAddr answer textualSize |
-	adjusted := processorDescription endian ifBig: [ arrayOfInt32s ] ifLittle: [ arrayOfInt32s collect: #byteSwap32 ].
+	adjusted := processorDescription endian 
+							ifBig: [ arrayOfInt32s ] 
+							ifLittle: [ arrayOfInt32s collect: #byteSwap32 ].
+							
 	buffer := WriteStream on: ''.
 	adjusted do: [ :anInt32 |
 		| data |

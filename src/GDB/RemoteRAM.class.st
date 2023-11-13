@@ -150,6 +150,12 @@ RemoteRAM >> longAtAddr: addr put: aValue bigEndian: bigEndian [
 		hexSize: '4'
 ]
 
+{ #category : #reading }
+RemoteRAM >> read32At: addr [
+	"For compatibility with RemoteGFB, sigh"
+	^self readInt32fromAddr: addr
+]
+
 { #category : #'RSP protocol' }
 RemoteRAM >> read: n bytesAsHexAt: addr [
 	"Answer the hex string the gdbserver will return to represent the n bytes read from address addr.
@@ -184,10 +190,10 @@ RemoteRAM >> read: n bytesAtAddr: addr [
 	^answer
 ]
 
-{ #category : #'remote endian' }
+{ #category : #reading }
 RemoteRAM >> readInt32fromAddr: addr [
 	"Read, using the REMOTE TARGET endianness."
-	^self unsignedLongAtAddr: addr bigEndian: self endianness class = BigEndian
+	^self unsignedLongAtAddr: addr
 ]
 
 { #category : #reading }
@@ -243,8 +249,8 @@ RemoteRAM >> unsignedLongAt: byteIndex put: int [
 ]
 
 { #category : #reading }
-RemoteRAM >> unsignedLongAtAddr: byteIndex [ 
-	^self unsignedLongAtAddr: byteIndex endian: self endianness
+RemoteRAM >> unsignedLongAtAddr: addr [ 
+	^self unsignedLongAtAddr: addr bigEndian: (self endianness ifBig:[true] ifLittle:[false])
 ]
 
 { #category : #reading }
@@ -325,7 +331,7 @@ RemoteRAM >> writeBytesHex: aString toAddrHex: addr hexSize: s [
 { #category : #writing }
 RemoteRAM >> writeInt32: int toAddr: addr [
 	"Use the REMOTE TARGET's endianness."
-	self longAtAddr: addr put: int bigEndian: self endianness class = BigEndian
+	self longAtAddr: addr put: int bigEndian: (self endianness ifBig:[true] ifLittle:[false])
 ]
 
 { #category : #writing }
