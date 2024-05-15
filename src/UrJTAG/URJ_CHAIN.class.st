@@ -79,6 +79,16 @@ URJ_CHAIN >> cable: anObject [
 	handle pointerAt: OFFSET_CABLE put: anObject getHandle.
 ]
 
+{ #category : #'OS API calls' }
+URJ_CHAIN >> frequency [
+	^LibUrJTAG uniqueInstance urj_tap_cable_get_frequency: self cable
+]
+
+{ #category : #'OS API calls' }
+URJ_CHAIN >> frequency: hz [
+	^LibUrJTAG uniqueInstance urj_tap_cable_set_frequency: self cable _: hz
+]
+
 { #category : #'accessing structure variables' }
 URJ_CHAIN >> main_part [
 	"This method was automatically generated"

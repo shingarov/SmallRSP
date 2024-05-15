@@ -106,6 +106,54 @@ URJ_PART >> data_registers: anObject [
 	handle pointerAt: OFFSET_DATA_REGISTERS put: anObject getHandle.
 ]
 
+{ #category : #API }
+URJ_PART >> getDataRegisters [
+	^URJ_DATA_REGISTER allFrom: self data_registers
+]
+
+{ #category : #API }
+URJ_PART >> getIDCode [
+	^JedecIDCode of: self getId getValue
+]
+
+{ #category : #API }
+URJ_PART >> getId [
+	^URJ_TAP_REGISTER fromHandle: self id getHandle
+]
+
+{ #category : #API }
+URJ_PART >> getInstructions [
+	^URJ_PART_INSTRUCTION allFrom: self instructions 
+]
+
+{ #category : #'API-database' }
+URJ_PART >> getManufacturerName [
+	^String fromFFIExternalArray: self manufacturer_name
+]
+
+{ #category : #'API-database' }
+URJ_PART >> getPartName [
+	^String fromFFIExternalArray: self part_name
+]
+
+{ #category : #GT }
+URJ_PART >> gtDataRegistersIn: composite [
+	<gtInspectorPresentationOrder: 51>
+	composite list
+		title: 'DR';
+		display: [ self getDataRegisters ]
+]
+
+{ #category : #GT }
+URJ_PART >> gtInstructionsIn: composite [
+	<gtInspectorPresentationOrder: 50>
+	composite list
+		title: 'Instructions';
+		display: [ self getInstructions ];
+		selectionAct: [ :list | self setInstruction: list rawSelection getName ]
+			entitled: 'Set active instruction'
+]
+
 { #category : #'accessing structure variables' }
 URJ_PART >> id [
 	"This method was automatically generated"
@@ -145,7 +193,7 @@ URJ_PART >> instructions: anObject [
 { #category : #'accessing structure variables' }
 URJ_PART >> manufacturer_name [
 	"This method was automatically generated"
-	^(FFITypeArray ofType: #FFICharacterType size: 26) fromHandle: (handle copyFrom: OFFSET_MANUFACTURER_NAME to: OFFSET_MANUFACTURER_NAME + 25)
+	^(FFITypeArray ofType: #FFIUInt8 size: 26) fromHandle: (handle copyFrom: OFFSET_MANUFACTURER_NAME to: OFFSET_MANUFACTURER_NAME + 25)
 ]
 
 { #category : #'accessing structure variables' }
@@ -169,7 +217,7 @@ URJ_PART >> params: anObject [
 { #category : #'accessing structure variables' }
 URJ_PART >> part_name [
 	"This method was automatically generated"
-	^(FFITypeArray ofType: #FFICharacterType size: 21) fromHandle: (handle copyFrom: OFFSET_PART_NAME to: OFFSET_PART_NAME + 20)
+	^(FFITypeArray ofType: #FFIUInt8 size: 21) fromHandle: (handle copyFrom: OFFSET_PART_NAME to: OFFSET_PART_NAME + 20)
 ]
 
 { #category : #'accessing structure variables' }
@@ -194,6 +242,12 @@ URJ_PART >> prepare [
 		ifTrue: [ self error: 'JTAG failed to add IDCODE instruction' ].
 		
 	^self
+]
+
+{ #category : #printing }
+URJ_PART >> printOn: aStream [
+	"Avoid VM segfault if anything goes wrong"
+	aStream nextPutAll: 'a URJ_PART'
 ]
 
 { #category : #'accessing structure variables' }
@@ -228,7 +282,7 @@ URJ_PART >> signals: anObject [
 { #category : #'accessing structure variables' }
 URJ_PART >> stepping [
 	"This method was automatically generated"
-	^(FFITypeArray ofType: #FFICharacterType size: 9) fromHandle: (handle copyFrom: OFFSET_STEPPING to: OFFSET_STEPPING + 8)
+	^(FFITypeArray ofType: #FFIUInt8 size: 9) fromHandle: (handle copyFrom: OFFSET_STEPPING to: OFFSET_STEPPING + 8)
 ]
 
 { #category : #'accessing structure variables' }

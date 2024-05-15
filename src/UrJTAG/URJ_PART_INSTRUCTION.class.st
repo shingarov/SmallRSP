@@ -14,6 +14,14 @@ Class {
 	#category : #UrJTAG
 }
 
+{ #category : #'as yet unclassified' }
+URJ_PART_INSTRUCTION class >> allFrom: ptr [
+	| instr |
+	ptr isNull ifTrue: [ ^#() ].
+	instr := URJ_PART_INSTRUCTION  fromHandle: ptr getHandle.
+	^{instr}, (self allFrom: instr next)
+]
+
 { #category : #'field definition' }
 URJ_PART_INSTRUCTION class >> fieldsDesc [
 	^ #(
@@ -40,10 +48,15 @@ URJ_PART_INSTRUCTION >> data_register: anObject [
 	handle pointerAt: OFFSET_DATA_REGISTER put: anObject getHandle.
 ]
 
+{ #category : #private }
+URJ_PART_INSTRUCTION >> getName [
+	^String fromFFIExternalArray: self name
+]
+
 { #category : #'accessing structure variables' }
 URJ_PART_INSTRUCTION >> name [
 	"This method was automatically generated"
-	^(FFITypeArray ofType: #FFICharacterType size: 21) fromHandle: (handle copyFrom: OFFSET_NAME to: OFFSET_NAME + 20)
+	^(FFITypeArray ofType: #FFIUInt8 size: 21) fromHandle: (handle copyFrom: OFFSET_NAME to: OFFSET_NAME + 20)
 ]
 
 { #category : #'accessing structure variables' }
@@ -74,6 +87,11 @@ URJ_PART_INSTRUCTION >> out [
 URJ_PART_INSTRUCTION >> out: anObject [
 	"This method was automatically generated"
 	handle pointerAt: OFFSET_OUT put: anObject getHandle.
+]
+
+{ #category : #printing }
+URJ_PART_INSTRUCTION >> printOn: aStream [
+	aStream nextPutAll: self getName
 ]
 
 { #category : #'accessing structure variables' }

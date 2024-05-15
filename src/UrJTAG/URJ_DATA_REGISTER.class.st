@@ -13,6 +13,14 @@ Class {
 	#category : #UrJTAG
 }
 
+{ #category : #'as yet unclassified' }
+URJ_DATA_REGISTER class >> allFrom: ptr [ 
+	| dr |
+	ptr isNull ifTrue: [ ^#() ].
+	dr := self fromHandle: ptr getHandle.
+	^{dr}, (self allFrom: dr next)
+]
+
 { #category : #'field definition' }
 URJ_DATA_REGISTER class >> fieldsDesc [
 	^ #(
@@ -24,6 +32,11 @@ void* next;
 	"
 	URJ_DATA_REGISTER rebuildFieldAccessors
 	"
+]
+
+{ #category : #API }
+URJ_DATA_REGISTER >> getName [
+	^String fromFFIExternalArray: self name
 ]
 
 { #category : #'accessing structure variables' }
@@ -41,7 +54,7 @@ URJ_DATA_REGISTER >> in: anObject [
 { #category : #'accessing structure variables' }
 URJ_DATA_REGISTER >> name [
 	"This method was automatically generated"
-	^(FFITypeArray ofType: #FFICharacterType size: 33) fromHandle: (handle copyFrom: OFFSET_NAME to: OFFSET_NAME + 32)
+	^(FFITypeArray ofType: #FFIUInt8 size: 33) fromHandle: (handle copyFrom: OFFSET_NAME to: OFFSET_NAME + 32)
 ]
 
 { #category : #'accessing structure variables' }
@@ -72,4 +85,9 @@ URJ_DATA_REGISTER >> out [
 URJ_DATA_REGISTER >> out: anObject [
 	"This method was automatically generated"
 	handle pointerAt: OFFSET_OUT put: anObject getHandle.
+]
+
+{ #category : #printing }
+URJ_DATA_REGISTER >> printOn: aStream [
+	aStream nextPutAll: self getName
 ]
