@@ -2,7 +2,8 @@ Class {
 	#name : #UrJtagChain,
 	#superclass : #Object,
 	#instVars : [
-		'chain'
+		'chain',
+		'parts'
 	],
 	#category : #UrJTAG
 }
@@ -14,6 +15,16 @@ UrJtagChain class >> new [
 	^self basicNew
 		chain: ptr;
 		yourself
+]
+
+{ #category : #API }
+UrJtagChain >> assertHALT [
+	self set_pod_signal: 16 to: 16
+]
+
+{ #category : #'as yet unclassified' }
+UrJtagChain >> captureDR [
+	LibUrJTAG uniqueInstance urj_tap_capture_dr: chain
 ]
 
 { #category : #private }
@@ -40,11 +51,54 @@ UrJtagChain >> connectTo: driverName [
 ]
 
 { #category : #API }
+UrJtagChain >> deassertHALT [
+	self set_pod_signal: 16 to: 0
+]
+
+{ #category : #API }
+UrJtagChain >> detect [
+	| rc urjPartsPtr ptrs len |
+	rc := LibUrJTAG uniqueInstance urj_tap_detect: chain _: 10.
+	rc = 0 ifFalse: [ self error ].
+	urjPartsPtr := self struct parts.
+	len := urjPartsPtr len.
+	ptrs := FFIExternalArray fromHandle: urjPartsPtr parts getHandle type: 'void*' size: len.
+	parts := (1 to: len) collect: [ :j |
+		URJ_PART fromHandle: (ptrs at: j) ].
+	^parts "cache the Smalltalk objects"
+]
+
+{ #category : #'as yet unclassified' }
+UrJtagChain >> detectRegisterSize: maxlen [ 
+	^LibUrJTAG uniqueInstance urj_tap_detect_register_size: chain _: maxlen
+]
+
+{ #category : #API }
+UrJtagChain >> free [
+	LibUrJTAG uniqueInstance urj_tap_chain_free: chain
+]
+
+{ #category : #API }
 UrJtagChain >> getPart [
 	| p |
 	p := LibUrJTAG uniqueInstance urj_tap_chain_active_part: chain.
 	p isNull ifTrue: [ self error: 'Failed to get active JTAG part' ].
 	^URJ_PART fromHandle: p getHandle
+]
+
+{ #category : #API }
+UrJtagChain >> get_pod_signal: sig [
+	"?????"
+	^LibUrJTAG uniqueInstance urj_tap_chain_get_pod_signal: chain _: sig
+]
+
+{ #category : #GT }
+UrJtagChain >> gtPartsIn: composite [
+	<gtInspectorPresentationOrder: 50>
+	composite list
+		title: 'Parts';
+		display: [ parts ];
+		format: #getPartName
 ]
 
 { #category : #private }
@@ -67,18 +121,22 @@ UrJtagChain >> readIDCODE [
 	| instr data_register out |
 	self getPart setInstruction: 'IDCODE'.
 	self shiftInstructions.
-	self shiftDataRegisters: 1.
 	instr := self getPart active_instruction.
+	self shiftDataRegisters: 1.
 	data_register := instr data_register.
-	out := data_register out.
-	^(LibUrJTAG uniqueInstance urj_tap_register_get_value: out) asInteger.
-
+	out := data_register out. "an URJ_TAP_REGISTER"
+	^out getValue
 ]
 
 { #category : #API }
 UrJtagChain >> setUSER2 [
 	self getPart setInstruction: 'USER2'.
 	self shiftInstructions
+]
+
+{ #category : #API }
+UrJtagChain >> set_pod_signal: mask to: val [
+	^LibUrJTAG uniqueInstance urj_tap_chain_set_pod_signal: chain _: mask _: val
 ]
 
 { #category : #private }

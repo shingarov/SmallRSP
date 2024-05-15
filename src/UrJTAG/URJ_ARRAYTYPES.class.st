@@ -13,10 +13,10 @@ Class {
 
 { #category : #'class initialization' }
 URJ_ARRAYTYPES class >> initialize [
-	URJ_PART_MANUFACTURER := FFIArray newArrayTypeOf: #char size: 25+1.
-	URJ_PART_PART         := FFIArray newArrayTypeOf: #char size: 20+1.
-	URJ_PART_STEPPING     := FFIArray newArrayTypeOf: #char size:  8+1.
-	URJ_PART_INSTRUCTION_INSTRUCTION := FFIArray newArrayTypeOf: #char size:  20+1.
-	URJ_DATA_REGISTER_NAME := FFIArray newArrayTypeOf: #char size:  32+1.
+	URJ_PART_MANUFACTURER := FFIArray newArrayTypeOf: #byte size: 25+1.
+	URJ_PART_PART         := FFIArray newArrayTypeOf: #byte size: 20+1.
+	URJ_PART_STEPPING     := FFIArray newArrayTypeOf: #byte size:  8+1.
+	URJ_PART_INSTRUCTION_INSTRUCTION := FFIArray newArrayTypeOf: #byte size:  20+1.
+	URJ_DATA_REGISTER_NAME := FFIArray newArrayTypeOf: #byte size:  32+1.
 	"URJ_ARRAYTYPES initialize"
 ]
