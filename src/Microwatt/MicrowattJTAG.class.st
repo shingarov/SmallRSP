@@ -94,7 +94,7 @@ MicrowattJTAG class >> startUp: isImageStarting [
 { #category : #private }
 MicrowattJTAG >> connect [
 	| rc |
-	rc := LibMwDMI uniqueInstance init: 'DigilentHS1 interface=1 index=0' freq: 0.
+	rc := LibMwDMI uniqueInstance init: 'DigilentNexysVideo' freq: 0.
 	rc = 0 ifFalse: [ self error ].
 ]
 

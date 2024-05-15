@@ -35,6 +35,11 @@ MicrowattGDB >> isStopped [
 	^jtag core_status includes: #STOPPED
 ]
 
+{ #category : #accessing }
+MicrowattGDB >> jtag [
+	^jtag
+]
+
 { #category : #memory }
 MicrowattGDB >> read32At: addr [
 	^jtag mem32At: addr
