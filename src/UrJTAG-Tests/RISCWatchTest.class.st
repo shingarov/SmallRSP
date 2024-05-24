@@ -30,6 +30,13 @@ RISCWatchTest >> frequency [
 	^10000
 ]
 
+{ #category : #'as yet unclassified' }
+RISCWatchTest >> getMsrTrashing: r [
+	((AcProcessorDescriptions powerpc instructionAt: 'mfmsr')
+		inEnvironment: (Dictionary with: 'rt' -> r )) execInBdmPB: self.
+	^self getRegister: r
+]
+
 { #category : #tests }
 RISCWatchTest >> getRegister: r [
 	((AcProcessorDescriptions powerpc instructionAt: 'mtspr')
@@ -74,10 +81,13 @@ RISCWatchTest >> powerUpSequence [
 
 { #category : #tests }
 RISCWatchTest >> ppcInstruction: encoding [
-	^self "should always return 1?"
+	| result |
+	result := self
 		jtagInstruction: 'PPCINST'
 		in33: encoding
-		prefix: 1
+		prefix: 1.
+	result = 1 ifFalse: [ self error ].
+	^result
 ]
 
 { #category : #tests }
@@ -113,6 +123,19 @@ RISCWatchTest >> readDBGR [
 		in33: 0
 		prefix: 0
 
+]
+
+{ #category : #'as yet unclassified' }
+RISCWatchTest >> readPcTrashing: r [
+"FIXME: should save LR first; then restore"
+	self ppcInstruction: 16r48000001. "bl 0x1000"
+
+	((AcProcessorDescriptions powerpc instructionAt: 'mfspr')
+		inEnvironment: (Dictionary with: 'rt'->r with: 'sprf'->8 reverseSprf))
+			execInBdmPB: self.
+
+	"self ppcInstruction: 16r7c0802a6."
+	^self getRegister: r
 ]
 
 { #category : #tests }
@@ -175,14 +198,6 @@ RISCWatchTest >> test3plus4 [
 ]
 
 { #category : #tests }
-RISCWatchTest >> test4 [
-
-	self halt.
-
-	self ppcInstruction: 16r7c13fba6
-]
-
-{ #category : #tests }
 RISCWatchTest >> testAdd [
 	Z3Context createGlobalContext.
 	self powerUpSequence.
@@ -191,6 +206,30 @@ RISCWatchTest >> testAdd [
 	self setRegister: 2 to: 1.
 	'add 0, 1, 2' execInBdmPB: self.
 	self assert: (self getRegister: 0) equals: 43
+]
+
+{ #category : #tests }
+RISCWatchTest >> testBootAndStop [
+	| out pc pcAgain |
+	self powerUpSequence. "Now we are stopped by JTAG request"
+	self assert: (self ppcMode: 0) equals: 1. "GO"
+	self assert: (self ppcInstructionZero) equals: 16r100000. "really go at this point"
+	self halt. "Programmer watch Linux boot"
+	self assert: (self ppcInstructionZero) equals: 16r100000. "state continues to be RUNNING"
+	
+	out := self ppcMode: EDM | IRPT.
+	self assert: (self ppcInstructionZero) equals: 1. "now we are STOPPED BY JTAG"
+	
+	self assert: (self getMsrTrashing: 0) equals: 16r29000.
+
+	pc := self readPcTrashing: 0.
+	self assert: pc & 2r11 equals: 0. "aligned instruction address"
+	self assert: pc & 16rFFFF0000 equals: 16rC0000000. "somewhere in the linux kernel"
+
+	"when we did the bl 0x1000, we did not actually jump anywhere"
+	pcAgain := self readPcTrashing: 0.
+	self assert: pcAgain equals: pc
+	
 ]
 
 { #category : #tests }
@@ -244,6 +283,31 @@ self halt.
 	self ppcModeSync .
 	
 	self assert: self ppcModeZero equals: 16r100000
+]
+
+{ #category : #tests }
+RISCWatchTest >> testSingleStep [
+	| out pc insn nextPC1 |
+	self powerUpSequence. "Now we are stopped by JTAG request"
+	self assert: (self ppcMode: 0) equals: 1. "GO"
+	self assert: (self ppcInstructionZero) equals: 16r100000. "really go at this point"
+	self halt. "Programmer watch Linux boot"
+	self assert: (self ppcInstructionZero) equals: 16r100000. "state continues to be RUNNING"
+	
+	out := self ppcMode: EDM | IRPT.
+	self assert: (self ppcInstructionZero) equals: 1. "now we are STOPPED BY JTAG"
+	
+	self assert: (self getMsrVia: 0) equals: 16r29000.
+
+	pc := self readPcVia: 1.
+	self assert: pc & 2r11 equals: 0. "aligned instruction address"
+	self assert: pc & 16rFFFF0000 equals: 16rC0000000. "somewhere in the linux kernel"
+	self halt.
+self ppcInstruction: 16r80010000.
+self ppcInstructionZero .
+insn := self getRegister: 0.
+nextPC1 := pc + 4.
+
 ]
 
 { #category : #tests }
