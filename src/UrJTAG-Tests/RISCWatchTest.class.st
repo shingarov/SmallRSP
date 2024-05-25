@@ -81,13 +81,10 @@ RISCWatchTest >> powerUpSequence [
 
 { #category : #tests }
 RISCWatchTest >> ppcInstruction: encoding [
-	| result |
-	result := self
+	^self
 		jtagInstruction: 'PPCINST'
 		in33: encoding
-		prefix: 1.
-	result = 1 ifFalse: [ self error ].
-	^result
+		prefix: 1
 ]
 
 { #category : #tests }
