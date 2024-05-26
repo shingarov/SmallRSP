@@ -22,7 +22,7 @@ Class {
 		'RST_system',
 		'TRAP'
 	],
-	#category : #UrJTAG
+	#category : #PowerOCD
 }
 
 { #category : #'class initialization' }
